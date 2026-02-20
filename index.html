@@ -90,7 +90,9 @@
         'Sal volàtil': "Unió de dos no-metalls. El més electronegatiu s'escriu a la dreta i se li afegeix el sufix '-ur'.",
         'Hidròxid': "Compostos amb el grup (OH) que té valència global -1. S'uneix a un metall intercanviant aquesta valència.",
         'Oxoàcid': "Àcids amb oxigen. Es formen sumant teòricament aigua (H2O) a un òxid no metàl·lic. En la tradicional, usen els prefixos i sufixos de l'element central (hipo-...-ós, ...-ós, ...-ic, per-...-ic).",
-        'Oxosal': "Deriven dels oxoàcids en substituir els hidrògens per un metall. Els sufixos de l'àcid canvien: '-ós' passa a '-it', i '-ic' passa a '-at'."
+        'Oxoàcid polihidratat': "S'obtenen sumant diferents molècules d'aigua a l'anhídrid. S'usen prefixos per indicar el grau d'hidratació: meta- (1 H2O), piro- o di- (2 H2O), orto- (3 H2O).",
+        'Oxosal': "Deriven dels oxoàcids en substituir els hidrògens per un metall. Els sufixos de l'àcid canvien: '-ós' passa a '-it', i '-ic' passa a '-at'.",
+        'Sal hidratada': "Sals que contenen molècules d'aigua de cristal·lització en la seva estructura. S'indica amb un prefix numeral grec seguit de la paraula '-hidratat'."
         };
 
         // --- BASE DE DADES MASSIVA (aprox 200 compostos) ---
@@ -283,16 +285,37 @@
         { formula: 'K2Cr2O7', names: ['dicromat de potassi', 'dicromat potàssic'], type: 'Oxosal' },
         { formula: 'Al2(SO4)3', names: ['sulfat d\'alumini', 'sulfat alumínic'], type: 'Oxosal' },
         { formula: 'Pb(NO3)2', names: ['nitrat de plom(II)', 'nitrat plumbós'], type: 'Oxosal' },
-        { formula: 'Na3PO4', names: ['fosfat de sodi', 'ortofosfat de sodi'], type: 'Oxosal' }
+        { formula: 'Na3PO4', names: ['fosfat de sodi', 'ortofosfat de sodi'], type: 'Oxosal' },
+
+        // OXOÀCIDS POLIHIDRATATS (Meta, Piro, Orto i Deshidratats)
+        { formula: 'HPO3', names: ['àcid metafosfòric'], type: 'Oxoàcid polihidratat' },
+        { formula: 'H4P2O7', names: ['àcid pirofosfòric', 'àcid difosfòric'], type: 'Oxoàcid polihidratat' },
+        { formula: 'HBO2', names: ['àcid metabòric'], type: 'Oxoàcid polihidratat' },
+        { formula: 'H2B4O7', names: ['àcid tetrabòric'], type: 'Oxoàcid polihidratat' },
+        { formula: 'H2S2O7', names: ['àcid pirosulfúric', 'àcid disulfúric'], type: 'Oxoàcid polihidratat' },
+        { formula: 'H2SiO3', names: ['àcid metasilícic'], type: 'Oxoàcid polihidratat' },
+
+        // SALS HIDRATADES
+        { formula: 'CuSO4·5H2O', names: ['sulfat de coure(II) pentahidratat', 'sulfat cúpric pentahidratat'], type: 'Sal hidratada' },
+        { formula: 'CaSO4·2H2O', names: ['sulfat de calci dihidratat', 'sulfat càlcic dihidratat'], type: 'Sal hidratada' },
+        { formula: 'Na2CO3·10H2O', names: ['carbonat de sodi decahidratat', 'carbonat sòdic decahidratat'], type: 'Sal hidratada' },
+        { formula: 'MgCl2·6H2O', names: ['clorur de magnesi hexahidratat', 'clorur magnèsic hexahidratat'], type: 'Sal hidratada' },
+        { formula: 'CoCl2·6H2O', names: ['clorur de cobalt(II) hexahidratat', 'clorur cobaltós hexahidratat'], type: 'Sal hidratada' }
         ];
 
         // Utilitat visual per renderitzar fórmules amb subíndexs
         const FormatFormula = ({ formula, large = false }) => {
+        const parts = formula.split(/(\d+)/);
         return (
             <span className={`font-black tracking-widest ${large ? 'text-5xl md:text-7xl' : 'text-xl'} drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]`}>
-            {formula.split(/(\d+)/).map((part, index) => {
+            {parts.map((part, index) => {
                 if (!isNaN(part) && part !== '') {
-                return <sub key={index} className={`${large ? 'text-3xl md:text-4xl' : 'text-sm'} font-bold text-indigo-300 relative top-2`}>{part}</sub>;
+                // Detectar si el nombre ve just després d'un punt volat '·' (coeficient de molècula d'aigua)
+                const prevPart = index > 0 ? parts[index-1] : '';
+                if (prevPart.endsWith('·') || prevPart.endsWith('· ')) {
+                    return <span key={index}>{part}</span>;
+                }
+                return <sub key={index} className={`${large ? 'text-3xl md:text-4xl' : 'text-sm'} font-bold text-cyan-300 relative top-2`}>{part}</sub>;
                 }
                 return <span key={index}>{part}</span>;
             })}
@@ -413,32 +436,32 @@
         if (gameState === 'menu') {
             return (
             <div className="min-h-screen bg-[#0B0F19] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
-                <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/30 rounded-full blur-[120px] mix-blend-screen animate-pulse"></div>
-                <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-fuchsia-600/20 rounded-full blur-[150px] mix-blend-screen"></div>
+                <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-cyan-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[150px] mix-blend-screen"></div>
 
-                <div className="z-10 text-center max-w-md w-full backdrop-blur-xl bg-white/5 border border-white/10 p-10 rounded-3xl shadow-[0_0_50px_rgba(79,70,229,0.2)]">
+                <div className="z-10 text-center max-w-md w-full backdrop-blur-xl bg-white/5 border border-white/10 p-10 rounded-3xl shadow-[0_0_50px_rgba(6,182,212,0.15)]">
                 <div className="flex justify-center mb-6">
                     <div className="relative">
-                    <Sparkles className="absolute -top-4 -right-4 text-fuchsia-400 animate-bounce" size={32} />
-                    <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-fuchsia-500 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(139,92,246,0.5)]">
+                    <Sparkles className="absolute -top-4 -right-4 text-cyan-400 animate-bounce" size={32} />
+                    <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.4)]">
                         <Flame size={48} className="text-white" />
                     </div>
                     </div>
                 </div>
                 
-                <h1 className="text-4xl md:text-5xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-purple-300 to-fuchsia-300 tracking-tight">
+                <h1 className="text-4xl md:text-5xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-cyan-300 to-teal-300 tracking-tight">
                     Alquimista<br/>Quàntic
                 </h1>
-                <p className="text-indigo-200/70 mb-4 text-lg">Domina la química inorgànica.</p>
-                <div className="mb-10 text-sm bg-white/10 rounded-full py-1 px-4 text-indigo-200 inline-block">
-                    +200 compostos i 11 famílies
+                <p className="text-blue-200/70 mb-4 text-lg">Domina la química inorgànica.</p>
+                <div className="mb-10 text-sm bg-white/10 rounded-full py-1 px-4 text-cyan-200 inline-block border border-cyan-500/20">
+                    +200 compostos i 13 famílies
                 </div>
                 
                 <button 
                     onClick={startGame}
                     className="w-full relative group overflow-hidden rounded-2xl p-[2px]"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 opacity-70 group-hover:opacity-100 animate-pulse transition-opacity"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 opacity-70 group-hover:opacity-100 animate-pulse transition-opacity"></div>
                     <div className="relative bg-[#0B0F19] bg-opacity-90 px-8 py-5 rounded-2xl flex items-center justify-center gap-3 transition-all group-hover:bg-opacity-0">
                     <Play className="text-white fill-current" size={24} />
                     <span className="text-2xl font-bold tracking-wide">JUGAR ARA</span>
@@ -446,7 +469,7 @@
                 </button>
 
                 {bestScore > 0 && (
-                    <div className="mt-8 flex items-center justify-center gap-2 text-fuchsia-300 font-semibold bg-white/5 py-3 rounded-full border border-fuchsia-500/20">
+                    <div className="mt-8 flex items-center justify-center gap-2 text-cyan-300 font-semibold bg-white/5 py-3 rounded-full border border-cyan-500/20">
                     <Trophy size={20} /> Millor Puntuació: {bestScore}
                     </div>
                 )}
@@ -474,7 +497,7 @@
 
                 <button 
                     onClick={startGame}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xl py-5 rounded-2xl flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(79,70,229,0.4)] transition-transform active:scale-95"
+                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-xl py-5 rounded-2xl flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(14,165,233,0.4)] transition-transform active:scale-95"
                 >
                     <RotateCcw size={24} /> Tornar a Intentar
                 </button>
@@ -506,17 +529,17 @@
                     </div>
                     </div>
 
-                    <div className="bg-indigo-900/30 rounded-2xl p-5 mb-8 border border-indigo-500/30">
+                    <div className="bg-blue-900/30 rounded-2xl p-5 mb-8 border border-blue-500/30">
                     <div className="flex items-center gap-2 mb-2">
-                        <Info size={20} className="text-indigo-400" />
-                        <h3 className="font-bold text-indigo-300 text-lg uppercase tracking-wide">
+                        <Info size={20} className="text-cyan-400" />
+                        <h3 className="font-bold text-cyan-300 text-lg uppercase tracking-wide">
                         Repàs: {currentQuiz.compound.type}
                         </h3>
                     </div>
-                    <p className="text-indigo-100/80 leading-relaxed text-lg">
+                    <p className="text-blue-100/80 leading-relaxed text-lg">
                         {explanationsDB[currentQuiz.compound.type]}
                     </p>
-                    <p className="mt-3 text-sm text-indigo-300/60 font-medium flex items-center gap-2">
+                    <p className="mt-3 text-sm text-cyan-300/60 font-medium flex items-center gap-2">
                         S'aplica al compost: <FormatFormula formula={currentQuiz.compound.formula} />
                     </p>
                     </div>
@@ -545,7 +568,7 @@
                     {score.toString().padStart(4, '0')}
                 </div>
                 {combo > 1 && (
-                    <div className="flex items-center gap-1 text-fuchsia-400 font-bold text-lg animate-pulse">
+                    <div className="flex items-center gap-1 text-cyan-400 font-bold text-lg animate-pulse">
                     <Zap size={16} className="fill-current" /> COMBO x{combo}
                     </div>
                 )}
@@ -553,7 +576,7 @@
             </div>
 
             <div className={`flex-1 flex flex-col items-center justify-center p-6 z-10 transition-opacity duration-300 ${showExplanation ? 'opacity-30 blur-sm pointer-events-none' : 'opacity-100'}`}>
-                <div className="text-indigo-300/60 font-bold tracking-widest uppercase mb-4 text-sm md:text-base flex items-center gap-2">
+                <div className="text-cyan-300/60 font-bold tracking-widest uppercase mb-4 text-sm md:text-base flex items-center gap-2">
                 {currentQuiz.compound.type}
                 </div>
                 
@@ -593,7 +616,7 @@
                         className={`relative w-full p-6 md:p-8 rounded-2xl border-2 backdrop-blur-md transition-all duration-300 text-xl md:text-2xl font-bold flex items-center justify-center text-center overflow-hidden active:scale-95 ${btnStyle}`}
                     >
                         {selectedAnswer === null && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-white/5 to-purple-500/0 opacity-0 hover:opacity-100 transition-opacity duration-500 transform -translate-x-full hover:translate-x-full"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-white/5 to-cyan-500/0 opacity-0 hover:opacity-100 transition-opacity duration-500 transform -translate-x-full hover:translate-x-full"></div>
                         )}
                         
                         {formatAsFormula ? (
