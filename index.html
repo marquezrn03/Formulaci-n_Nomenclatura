@@ -1,560 +1,618 @@
-import React, { useState, useEffect } from 'react';
-import { Heart, Zap, Trophy, Play, RotateCcw, AlertTriangle, Sparkles, Flame, Info, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alquimista Quàntic - Joc de Química</title>
+    
+    <!-- Tailwind CSS (CDN per estils ràpids) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Llibreries de React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel (per transpilar el codi JSX directament al navegador) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-// --- DICCIONARI D'EXPLICACIONS PER FAMÍLIA ---
-const explanationsDB = {
-  'Òxid metàl·lic': "L'oxigen actua amb valència -2. S'intercanvia amb la valència del metall i se simplifiquen els subíndexs si són parells.",
-  'Òxid no metàl·lic': "L'oxigen (-2) s'uneix a un no-metall. En la nomenclatura tradicional s'acostumen a anomenar 'anhídrids'.",
-  'Peròxid': "Contenen el grup peròxid (O2) amb valència -2. L'enllaç O-O no es pot simplificar, per això sovint veuràs subíndexs que semblen no simplificats (ex: H2O2).",
-  'Hidrur metàl·lic': "L'hidrogen actua amb valència -1 en unir-se a un metall.",
-  'Hidrur no metàl·lic': "Hidrurs especials (grups 13, 14, 15) on l'hidrogen actua amb +1. Tenen noms propis tradicionals molt usats (amoníac, metà, silà...).",
-  'Hidràcid': "Són hidrurs de no-metalls dels grups 16 i 17. Com a gas acaben en '-ur d'hidrogen', i en dissolució aquosa s'anomenen 'àcid ...-hídric'.",
-  'Sal binària': "Unió d'un metall i un no-metall. El no-metall usa la seva valència negativa única i s'afegeix el sufix '-ur'.",
-  'Sal volàtil': "Unió de dos no-metalls. El més electronegatiu s'escriu a la dreta i se li afegeix el sufix '-ur'.",
-  'Hidròxid': "Compostos amb el grup (OH) que té valència global -1. S'uneix a un metall intercanviant aquesta valència.",
-  'Oxoàcid': "Àcids amb oxigen. Es formen sumant teòricament aigua (H2O) a un òxid no metàl·lic. En la tradicional, usen els prefixos i sufixos de l'element central (hipo-...-ós, ...-ós, ...-ic, per-...-ic).",
-  'Oxosal': "Deriven dels oxoàcids en substituir els hidrògens per un metall. Els sufixos de l'àcid canvien: '-ós' passa a '-it', i '-ic' passa a '-at'."
-};
-
-// --- BASE DE DADES MASSIVA (aprox 200 compostos de TOTES les famílies) ---
-const compoundsDB = [
-  // ÒXIDS METÀL·LICS
-  { formula: 'Li2O', names: ['òxid de liti', 'monòxid de diliti', 'òxid lític'], type: 'Òxid metàl·lic' },
-  { formula: 'Na2O', names: ['òxid de sodi', 'monòxid de disodi', 'òxid sòdic'], type: 'Òxid metàl·lic' },
-  { formula: 'K2O', names: ['òxid de potassi', 'monòxid de dipotassi', 'òxid potàssic'], type: 'Òxid metàl·lic' },
-  { formula: 'BeO', names: ['òxid de beril·li', 'monòxid de beril·li'], type: 'Òxid metàl·lic' },
-  { formula: 'MgO', names: ['òxid de magnesi', 'monòxid de magnesi', 'òxid magnèsic'], type: 'Òxid metàl·lic' },
-  { formula: 'CaO', names: ['òxid de calci', 'monòxid de calci', 'òxid càlcic'], type: 'Òxid metàl·lic' },
-  { formula: 'SrO', names: ['òxid d\'estronci', 'monòxid d\'estronci'], type: 'Òxid metàl·lic' },
-  { formula: 'BaO', names: ['òxid de bari', 'monòxid de bari', 'òxid bàric'], type: 'Òxid metàl·lic' },
-  { formula: 'Al2O3', names: ['òxid d\'alumini', 'triòxid de dialumini', 'òxid alumínic'], type: 'Òxid metàl·lic' },
-  { formula: 'Fe2O3', names: ['òxid de ferro(III)', 'triòxid de diferro', 'òxid fèrric'], type: 'Òxid metàl·lic' },
-  { formula: 'FeO', names: ['òxid de ferro(II)', 'monòxid de ferro', 'òxid ferrós'], type: 'Òxid metàl·lic' },
-  { formula: 'Cu2O', names: ['òxid de coure(I)', 'monòxid de dicoure', 'òxid cuprós'], type: 'Òxid metàl·lic' },
-  { formula: 'CuO', names: ['òxid de coure(II)', 'monòxid de coure', 'òxid cúpric'], type: 'Òxid metàl·lic' },
-  { formula: 'Au2O', names: ['òxid d\'or(I)', 'monòxid de dior', 'òxid aurós'], type: 'Òxid metàl·lic' },
-  { formula: 'Au2O3', names: ['òxid d\'or(III)', 'triòxid de dior', 'òxid àuric'], type: 'Òxid metàl·lic' },
-  { formula: 'PbO', names: ['òxid de plom(II)', 'monòxid de plom', 'òxid plumbós'], type: 'Òxid metàl·lic' },
-  { formula: 'PbO2', names: ['òxid de plom(IV)', 'diòxid de plom', 'òxid plúmbic'], type: 'Òxid metàl·lic' },
-  { formula: 'NiO', names: ['òxid de níquel(II)', 'monòxid de níquel', 'òxid niquelós'], type: 'Òxid metàl·lic' },
-  { formula: 'Ni2O3', names: ['òxid de níquel(III)', 'triòxid de diníquel', 'òxid niquèlic'], type: 'Òxid metàl·lic' },
-  { formula: 'Ag2O', names: ['òxid de plata', 'monòxid de diplata', 'òxid argèntic'], type: 'Òxid metàl·lic' },
-  { formula: 'ZnO', names: ['òxid de zinc', 'monòxid de zinc', 'òxid zínquic'], type: 'Òxid metàl·lic' },
-  { formula: 'CrO', names: ['òxid de crom(II)', 'monòxid de crom', 'òxid cromós'], type: 'Òxid metàl·lic' },
-  { formula: 'Cr2O3', names: ['òxid de crom(III)', 'triòxid de dicrom', 'òxid cròmic'], type: 'Òxid metàl·lic' },
-  
-  // ÒXIDS NO METÀL·LICS (Anhídrids)
-  { formula: 'Cl2O', names: ['òxid de clor(I)', 'monòxid de diclor', 'anhídrid hipoclorós'], type: 'Òxid no metàl·lic' },
-  { formula: 'Cl2O3', names: ['òxid de clor(III)', 'triòxid de diclor', 'anhídrid clorós'], type: 'Òxid no metàl·lic' },
-  { formula: 'Cl2O5', names: ['òxid de clor(V)', 'pentaòxid de diclor', 'anhídrid clòric'], type: 'Òxid no metàl·lic' },
-  { formula: 'Cl2O7', names: ['òxid de clor(VII)', 'heptaòxid de diclor', 'anhídrid perclòric'], type: 'Òxid no metàl·lic' },
-  { formula: 'Br2O', names: ['òxid de brom(I)', 'monòxid de dibrom', 'anhídrid hipobromós'], type: 'Òxid no metàl·lic' },
-  { formula: 'Br2O5', names: ['òxid de brom(V)', 'pentaòxid de dibrom', 'anhídrid bròmic'], type: 'Òxid no metàl·lic' },
-  { formula: 'I2O5', names: ['òxid de iode(V)', 'pentaòxid de diiode', 'anhídrid iòdic'], type: 'Òxid no metàl·lic' },
-  { formula: 'I2O7', names: ['òxid de iode(VII)', 'heptaòxid de diiode', 'anhídrid periòdic'], type: 'Òxid no metàl·lic' },
-  { formula: 'SO2', names: ['òxid de sofre(IV)', 'diòxid de sofre', 'anhídrid sulfurós'], type: 'Òxid no metàl·lic' },
-  { formula: 'SO3', names: ['òxid de sofre(VI)', 'triòxid de sofre', 'anhídrid sulfúric'], type: 'Òxid no metàl·lic' },
-  { formula: 'SeO2', names: ['òxid de seleni(IV)', 'diòxid de seleni', 'anhídrid seleniós'], type: 'Òxid no metàl·lic' },
-  { formula: 'TeO3', names: ['òxid de tel·luri(VI)', 'triòxid de tel·luri', 'anhídrid tel·lúric'], type: 'Òxid no metàl·lic' },
-  { formula: 'N2O3', names: ['òxid de nitrogen(III)', 'triòxid de dinitrogen', 'anhídrid nitrós'], type: 'Òxid no metàl·lic' },
-  { formula: 'N2O5', names: ['òxid de nitrogen(V)', 'pentaòxid de dinitrogen', 'anhídrid nítric'], type: 'Òxid no metàl·lic' },
-  { formula: 'CO', names: ['òxid de carboni(II)', 'monòxid de carboni', 'anhídrid carbonós'], type: 'Òxid no metàl·lic' },
-  { formula: 'CO2', names: ['òxid de carboni(IV)', 'diòxid de carboni', 'anhídrid carbònic'], type: 'Òxid no metàl·lic' },
-  { formula: 'SiO2', names: ['òxid de silici', 'diòxid de silici', 'anhídrid silícic'], type: 'Òxid no metàl·lic' },
-  { formula: 'P2O3', names: ['òxid de fòsfor(III)', 'triòxid de difòsfor', 'anhídrid fosforós'], type: 'Òxid no metàl·lic' },
-  { formula: 'P2O5', names: ['òxid de fòsfor(V)', 'pentaòxid de difòsfor', 'anhídrid fosfòric'], type: 'Òxid no metàl·lic' },
-
-  // PERÒXIDS
-  { formula: 'H2O2', names: ['peròxid d\'hidrogen', 'aigua oxigenada'], type: 'Peròxid' },
-  { formula: 'Na2O2', names: ['peròxid de sodi', 'peròxid sòdic'], type: 'Peròxid' },
-  { formula: 'K2O2', names: ['peròxid de potassi', 'peròxid potàssic'], type: 'Peròxid' },
-  { formula: 'CaO2', names: ['peròxid de calci', 'peròxid càlcic'], type: 'Peròxid' },
-  { formula: 'BaO2', names: ['peròxid de bari', 'peròxid bàric'], type: 'Peròxid' },
-  { formula: 'MgO2', names: ['peròxid de magnesi', 'peròxid magnèsic'], type: 'Peròxid' },
-  { formula: 'CuO2', names: ['peròxid de coure(II)', 'peròxid cúpric'], type: 'Peròxid' },
-  { formula: 'ZnO2', names: ['peròxid de zinc', 'peròxid zínquic'], type: 'Peròxid' },
-
-  // HIDRURS METÀL·LICS
-  { formula: 'LiH', names: ['hidrur de liti', 'monohidrur de liti', 'hidrur lític'], type: 'Hidrur metàl·lic' },
-  { formula: 'NaH', names: ['hidrur de sodi', 'monohidrur de sodi', 'hidrur sòdic'], type: 'Hidrur metàl·lic' },
-  { formula: 'KH', names: ['hidrur de potassi', 'monohidrur de potassi', 'hidrur potàssic'], type: 'Hidrur metàl·lic' },
-  { formula: 'MgH2', names: ['hidrur de magnesi', 'dihidrur de magnesi', 'hidrur magnèsic'], type: 'Hidrur metàl·lic' },
-  { formula: 'CaH2', names: ['hidrur de calci', 'dihidrur de calci', 'hidrur càlcic'], type: 'Hidrur metàl·lic' },
-  { formula: 'FeH2', names: ['hidrur de ferro(II)', 'dihidrur de ferro', 'hidrur ferrós'], type: 'Hidrur metàl·lic' },
-  { formula: 'FeH3', names: ['hidrur de ferro(III)', 'trihidrur de ferro', 'hidrur fèrric'], type: 'Hidrur metàl·lic' },
-  { formula: 'CuH', names: ['hidrur de coure(I)', 'monohidrur de coure', 'hidrur cuprós'], type: 'Hidrur metàl·lic' },
-  { formula: 'CuH2', names: ['hidrur de coure(II)', 'dihidrur de coure', 'hidrur cúpric'], type: 'Hidrur metàl·lic' },
-  { formula: 'PbH4', names: ['hidrur de plom(IV)', 'tetrahidrur de plom', 'hidrur plúmbic'], type: 'Hidrur metàl·lic' },
-  { formula: 'AlH3', names: ['hidrur d\'alumini', 'trihidrur d\'alumini', 'hidrur alumínic'], type: 'Hidrur metàl·lic' },
-
-  // HIDRURS NO METÀL·LICS
-  { formula: 'NH3', names: ['amoníac', 'trihidrur de nitrogen', 'hidrur de nitrogen(III)'], type: 'Hidrur no metàl·lic' },
-  { formula: 'PH3', names: ['fosfina', 'fosfà', 'trihidrur de fòsfor'], type: 'Hidrur no metàl·lic' },
-  { formula: 'AsH3', names: ['arsina', 'arsà', 'trihidrur d\'arsènic'], type: 'Hidrur no metàl·lic' },
-  { formula: 'SbH3', names: ['estibina', 'estibà', 'trihidrur d\'antimoni'], type: 'Hidrur no metàl·lic' },
-  { formula: 'CH4', names: ['metà', 'tetrahidrur de carboni'], type: 'Hidrur no metàl·lic' },
-  { formula: 'SiH4', names: ['silà', 'tetrahidrur de silici'], type: 'Hidrur no metàl·lic' },
-  { formula: 'BH3', names: ['borà', 'trihidrur de bor'], type: 'Hidrur no metàl·lic' },
-
-  // HIDRÀCIDS
-  { formula: 'HF', names: ['àcid fluorhídric', 'fluorur d\'hidrogen'], type: 'Hidràcid' },
-  { formula: 'HCl', names: ['àcid clorhídric', 'clorur d\'hidrogen'], type: 'Hidràcid' },
-  { formula: 'HBr', names: ['àcid bromhídric', 'bromur d\'hidrogen'], type: 'Hidràcid' },
-  { formula: 'HI', names: ['àcid iodhídric', 'iodur d\'hidrogen'], type: 'Hidràcid' },
-  { formula: 'H2S', names: ['àcid sulfhídric', 'sulfur de dihidrogen', 'sulfur d\'hidrogen'], type: 'Hidràcid' },
-  { formula: 'H2Se', names: ['àcid selenhídric', 'selenur de dihidrogen', 'selenur d\'hidrogen'], type: 'Hidràcid' },
-  { formula: 'H2Te', names: ['àcid tel·lurhídric', 'tel·lurur de dihidrogen', 'tel·lurur d\'hidrogen'], type: 'Hidràcid' },
-
-  // SALS BINÀRIES
-  { formula: 'LiF', names: ['fluorur de liti', 'monofluorur de liti', 'fluorur lític'], type: 'Sal binària' },
-  { formula: 'NaCl', names: ['clorur de sodi', 'monoclorur de sodi', 'clorur sòdic'], type: 'Sal binària' },
-  { formula: 'KBr', names: ['bromur de potassi', 'monobromur de potassi', 'bromur potàssic'], type: 'Sal binària' },
-  { formula: 'MgI2', names: ['iodur de magnesi', 'diiodur de magnesi', 'iodur magnèsic'], type: 'Sal binària' },
-  { formula: 'CaF2', names: ['fluorur de calci', 'difluorur de calci', 'fluorur càlcic'], type: 'Sal binària' },
-  { formula: 'BaCl2', names: ['clorur de bari', 'diclorur de bari', 'clorur bàric'], type: 'Sal binària' },
-  { formula: 'FeCl2', names: ['clorur de ferro(II)', 'diclorur de ferro', 'clorur ferrós'], type: 'Sal binària' },
-  { formula: 'FeCl3', names: ['clorur de ferro(III)', 'triclorur de ferro', 'clorur fèrric'], type: 'Sal binària' },
-  { formula: 'CuBr', names: ['bromur de coure(I)', 'monobromur de coure', 'bromur cuprós'], type: 'Sal binària' },
-  { formula: 'CuBr2', names: ['bromur de coure(II)', 'dibromur de coure', 'bromur cúpric'], type: 'Sal binària' },
-  { formula: 'AgCl', names: ['clorur de plata', 'monoclorur de plata', 'clorur argèntic'], type: 'Sal binària' },
-  { formula: 'ZnS', names: ['sulfur de zinc', 'monosulfur de zinc', 'sulfur zínquic'], type: 'Sal binària' },
-  { formula: 'PbS', names: ['sulfur de plom(II)', 'monosulfur de plom', 'sulfur plumbós'], type: 'Sal binària' },
-  { formula: 'PbS2', names: ['sulfur de plom(IV)', 'disulfur de plom', 'sulfur plúmbic'], type: 'Sal binària' },
-  { formula: 'AlCl3', names: ['clorur d\'alumini', 'triclorur d\'alumini', 'clorur alumínic'], type: 'Sal binària' },
-  { formula: 'K2S', names: ['sulfur de potassi', 'monosulfur de dipotassi', 'sulfur potàssic'], type: 'Sal binària' },
-
-  // SALS VOLÀTILS (No metall + No metall)
-  { formula: 'BrF3', names: ['trifluorur de brom', 'fluorur de brom(III)'], type: 'Sal volàtil' },
-  { formula: 'BrF5', names: ['pentafluorur de brom', 'fluorur de brom(V)'], type: 'Sal volàtil' },
-  { formula: 'ICl', names: ['monoclorur de iode', 'clorur de iode(I)'], type: 'Sal volàtil' },
-  { formula: 'ICl3', names: ['triclorur de iode', 'clorur de iode(III)'], type: 'Sal volàtil' },
-  { formula: 'PCl3', names: ['triclorur de fòsfor', 'clorur de fòsfor(III)'], type: 'Sal volàtil' },
-  { formula: 'PCl5', names: ['pentaclorur de fòsfor', 'clorur de fòsfor(V)'], type: 'Sal volàtil' },
-  { formula: 'CS2', names: ['disulfur de carboni', 'sulfur de carboni(IV)'], type: 'Sal volàtil' },
-  { formula: 'SF4', names: ['tetrafluorur de sofre', 'fluorur de sofre(IV)'], type: 'Sal volàtil' },
-  { formula: 'SF6', names: ['hexafluorur de sofre', 'fluorur de sofre(VI)'], type: 'Sal volàtil' },
-  { formula: 'BCl3', names: ['triclorur de bor', 'clorur de bor'], type: 'Sal volàtil' },
-
-  // HIDRÒXIDS
-  { formula: 'LiOH', names: ['hidròxid de liti', 'hidròxid lític'], type: 'Hidròxid' },
-  { formula: 'NaOH', names: ['hidròxid de sodi', 'hidròxid sòdic'], type: 'Hidròxid' },
-  { formula: 'KOH', names: ['hidròxid de potassi', 'hidròxid potàssic'], type: 'Hidròxid' },
-  { formula: 'Mg(OH)2', names: ['hidròxid de magnesi', 'dihidròxid de magnesi', 'hidròxid magnèsic'], type: 'Hidròxid' },
-  { formula: 'Ca(OH)2', names: ['hidròxid de calci', 'dihidròxid de calci', 'hidròxid càlcic'], type: 'Hidròxid' },
-  { formula: 'Ba(OH)2', names: ['hidròxid de bari', 'dihidròxid de bari', 'hidròxid bàric'], type: 'Hidròxid' },
-  { formula: 'Fe(OH)2', names: ['hidròxid de ferro(II)', 'dihidròxid de ferro', 'hidròxid ferrós'], type: 'Hidròxid' },
-  { formula: 'Fe(OH)3', names: ['hidròxid de ferro(III)', 'trihidròxid de ferro', 'hidròxid fèrric'], type: 'Hidròxid' },
-  { formula: 'Cu(OH)', names: ['hidròxid de coure(I)', 'monohidròxid de coure', 'hidròxid cuprós'], type: 'Hidròxid' },
-  { formula: 'Cu(OH)2', names: ['hidròxid de coure(II)', 'dihidròxid de coure', 'hidròxid cúpric'], type: 'Hidròxid' },
-  { formula: 'Al(OH)3', names: ['hidròxid d\'alumini', 'trihidròxid d\'alumini', 'hidròxid alumínic'], type: 'Hidròxid' },
-  { formula: 'Zn(OH)2', names: ['hidròxid de zinc', 'dihidròxid de zinc', 'hidròxid zínquic'], type: 'Hidròxid' },
-  { formula: 'Pb(OH)2', names: ['hidròxid de plom(II)', 'dihidròxid de plom', 'hidròxid plumbós'], type: 'Hidròxid' },
-  { formula: 'Pb(OH)4', names: ['hidròxid de plom(IV)', 'tetrahidròxid de plom', 'hidròxid plúmbic'], type: 'Hidròxid' },
-  { formula: 'AgOH', names: ['hidròxid de plata', 'hidròxid argèntic'], type: 'Hidròxid' },
-
-  // OXOÀCIDS
-  { formula: 'HClO', names: ['àcid hipoclorós', 'oxoclorat(I) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'HClO2', names: ['àcid clorós', 'dioxoclorat(III) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'HClO3', names: ['àcid clòric', 'trioxoclorat(V) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'HClO4', names: ['àcid perclòric', 'tetraoxoclorat(VII) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'HBrO', names: ['àcid hipobromós', 'oxobromat(I) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'HBrO2', names: ['àcid bromós', 'dioxobromat(III) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'HBrO3', names: ['àcid bròmic', 'trioxobromat(V) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'HBrO4', names: ['àcid perbròmic', 'tetraoxobromat(VII) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'HIO', names: ['àcid hipoiodós', 'oxoiodat(I) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'HIO3', names: ['àcid iòdic', 'trioxoiodat(V) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'HIO4', names: ['àcid periòdic', 'tetraoxoiodat(VII) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'H2SO2', names: ['àcid hiposulfurós', 'dioxosulfat(II) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'H2SO3', names: ['àcid sulfurós', 'trioxosulfat(IV) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'H2SO4', names: ['àcid sulfúric', 'tetraoxosulfat(VI) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'H2SeO3', names: ['àcid seleniós', 'trioxoseleniat(IV) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'H2SeO4', names: ['àcid selènic', 'tetraoxoseleniat(VI) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'HNO2', names: ['àcid nitrós', 'dioxonitrat(III) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'HNO3', names: ['àcid nítric', 'trioxonitrat(V) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'H3PO3', names: ['àcid fosforós', 'trioxofosfat(III) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'H3PO4', names: ['àcid fosfòric', 'tetraoxofosfat(V) d\'hidrogen', 'àcid ortofosfòric'], type: 'Oxoàcid' },
-  { formula: 'H2CO3', names: ['àcid carbònic', 'trioxocarbonat(IV) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'H4SiO4', names: ['àcid silícic', 'tetraoxosilicat(IV) d\'hidrogen', 'àcid ortosilícic'], type: 'Oxoàcid' },
-  { formula: 'H3BO3', names: ['àcid bòric', 'trioxoborat(III) d\'hidrogen', 'àcid ortobòric'], type: 'Oxoàcid' },
-  { formula: 'HMnO4', names: ['àcid permangànic', 'tetraoxomanganat(VII) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'H2CrO4', names: ['àcid cròmic', 'tetraoxocromat(VI) d\'hidrogen'], type: 'Oxoàcid' },
-  { formula: 'H2Cr2O7', names: ['àcid dicròmic', 'heptaoxodicromat(VI) d\'hidrogen'], type: 'Oxoàcid' },
-
-  // OXOSALS
-  { formula: 'NaClO', names: ['hipoclorit de sodi', 'hipoclorit sòdic'], type: 'Oxosal' },
-  { formula: 'NaClO2', names: ['clorit de sodi', 'clorit sòdic'], type: 'Oxosal' },
-  { formula: 'NaClO3', names: ['clorat de sodi', 'clorat sòdic'], type: 'Oxosal' },
-  { formula: 'NaClO4', names: ['perclorat de sodi', 'perclorat sòdic'], type: 'Oxosal' },
-  { formula: 'KNO2', names: ['nitrit de potassi', 'nitrit potàssic'], type: 'Oxosal' },
-  { formula: 'KNO3', names: ['nitrat de potassi', 'nitrat potàssic'], type: 'Oxosal' },
-  { formula: 'Ca(NO3)2', names: ['nitrat de calci', 'nitrat càlcic'], type: 'Oxosal' },
-  { formula: 'AgNO3', names: ['nitrat de plata', 'nitrat argèntic'], type: 'Oxosal' },
-  { formula: 'Na2SO3', names: ['sulfit de sodi', 'sulfit sòdic'], type: 'Oxosal' },
-  { formula: 'Na2SO4', names: ['sulfat de sodi', 'sulfat sòdic'], type: 'Oxosal' },
-  { formula: 'K2SO4', names: ['sulfat de potassi', 'sulfat potàssic'], type: 'Oxosal' },
-  { formula: 'CaSO4', names: ['sulfat de calci', 'sulfat càlcic'], type: 'Oxosal' },
-  { formula: 'BaSO4', names: ['sulfat de bari', 'sulfat bàric'], type: 'Oxosal' },
-  { formula: 'FeSO4', names: ['sulfat de ferro(II)', 'sulfat ferrós'], type: 'Oxosal' },
-  { formula: 'Fe2(SO4)3', names: ['sulfat de ferro(III)', 'sulfat fèrric'], type: 'Oxosal' },
-  { formula: 'CuSO4', names: ['sulfat de coure(II)', 'sulfat cúpric'], type: 'Oxosal' },
-  { formula: 'CaCO3', names: ['carbonat de calci', 'carbonat càlcic'], type: 'Oxosal' },
-  { formula: 'Na2CO3', names: ['carbonat de sodi', 'carbonat sòdic'], type: 'Oxosal' },
-  { formula: 'K2CO3', names: ['carbonat de potassi', 'carbonat potàssic'], type: 'Oxosal' },
-  { formula: 'KClO3', names: ['clorat de potassi', 'clorat potàssic'], type: 'Oxosal' },
-  { formula: 'KMnO4', names: ['permanganat de potassi', 'permanganat potàssic'], type: 'Oxosal' },
-  { formula: 'K2CrO4', names: ['cromat de potassi', 'cromat potàssic'], type: 'Oxosal' },
-  { formula: 'K2Cr2O7', names: ['dicromat de potassi', 'dicromat potàssic'], type: 'Oxosal' },
-  { formula: 'Al2(SO4)3', names: ['sulfat d\'alumini', 'sulfat alumínic'], type: 'Oxosal' },
-  { formula: 'Pb(NO3)2', names: ['nitrat de plom(II)', 'nitrat plumbós'], type: 'Oxosal' },
-  { formula: 'Na3PO4', names: ['fosfat de sodi', 'ortofosfat de sodi'], type: 'Oxosal' }
-];
-
-// Utilitat visual per renderitzar fórmules amb subíndexs
-const FormatFormula = ({ formula, large = false }) => {
-  return (
-    <span className={`font-black tracking-widest ${large ? 'text-5xl md:text-7xl' : 'text-xl'} drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]`}>
-      {formula.split(/(\d+)/).map((part, index) => {
-        if (!isNaN(part) && part !== '') {
-          return <sub key={index} className={`${large ? 'text-3xl md:text-4xl' : 'text-sm'} font-bold text-indigo-300 relative top-2`}>{part}</sub>;
-        }
-        return <span key={index}>{part}</span>;
-      })}
-    </span>
-  );
-};
-
-// Generador de preguntes (opció múltiple)
-const generateQuiz = () => {
-  const targetIndex = Math.floor(Math.random() * compoundsDB.length);
-  const target = compoundsDB[targetIndex];
-  
-  const questionType = Math.random() > 0.5 ? 'formula_to_name' : 'name_to_formula';
-  const options = new Set();
-  
-  let correctOptionStr = '';
-  if (questionType === 'formula_to_name') {
-    correctOptionStr = target.names[Math.floor(Math.random() * target.names.length)];
-  } else {
-    correctOptionStr = target.formula;
-  }
-  options.add(correctOptionStr);
-
-  while(options.size < 4) {
-    const randomCompound = compoundsDB[Math.floor(Math.random() * compoundsDB.length)];
-    if (randomCompound.formula !== target.formula) {
-      if (questionType === 'formula_to_name') {
-        const randomName = randomCompound.names[Math.floor(Math.random() * randomCompound.names.length)];
-        options.add(randomName);
-      } else {
-        options.add(randomCompound.formula);
-      }
-    }
-  }
-
-  const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
-
-  return {
-    compound: target,
-    type: questionType,
-    questionText: questionType === 'formula_to_name' 
-      ? target.formula 
-      : target.names[Math.floor(Math.random() * target.names.length)], 
-    correctAnswer: correctOptionStr,
-    options: shuffledOptions
-  };
-};
-
-export default function GameApp() {
-  const [gameState, setGameState] = useState('menu'); // menu, playing, gameover
-  const [currentQuiz, setCurrentQuiz] = useState(null);
-  const [score, setScore] = useState(0);
-  const [lives, setLives] = useState(3);
-  const [combo, setCombo] = useState(1);
-  const [bestScore, setBestScore] = useState(0);
-  
-  // Estats d'animació i modals
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [shakeEfx, setShakeEfx] = useState(false);
-  const [glowEfx, setGlowEfx] = useState(false);
-  const [showExplanation, setShowExplanation] = useState(false); // NOU: Modal d'explicació
-
-  const startGame = () => {
-    setScore(0);
-    setLives(3);
-    setCombo(1);
-    setCurrentQuiz(generateQuiz());
-    setShowExplanation(false);
-    setGameState('playing');
-  };
-
-  const handleAnswer = (answer) => {
-    if (isAnimating || showExplanation) return;
-    setIsAnimating(true);
-    setSelectedAnswer(answer);
-
-    const isCorrect = answer === currentQuiz.correctAnswer;
-
-    if (isCorrect) {
-      // ENCERTA
-      setGlowEfx(true);
-      const pointsEarned = 10 * combo;
-      setScore(s => s + pointsEarned);
-      setCombo(c => Math.min(c + 1, 5));
-      
-      setTimeout(() => {
-        setGlowEfx(false);
-        setCurrentQuiz(generateQuiz());
-        setSelectedAnswer(null);
-        setIsAnimating(false);
-      }, 800);
-
-    } else {
-      // FALLA
-      setShakeEfx(true);
-      setCombo(1); 
-      
-      setTimeout(() => {
-        setShakeEfx(false);
-        // En lloc de saltar directament, mostrem l'explicació educativa
-        setShowExplanation(true);
-      }, 800);
-    }
-  };
-
-  const handleContinueAfterFailure = () => {
-    const newLives = lives - 1;
-    setLives(newLives);
-    setShowExplanation(false);
-    setSelectedAnswer(null);
-    setIsAnimating(false);
-
-    if (newLives <= 0) {
-      if (score > bestScore) setBestScore(score);
-      setGameState('gameover');
-    } else {
-      setCurrentQuiz(generateQuiz());
-    }
-  };
-
-  // --- PANTALLA: MENÚ ---
-  if (gameState === 'menu') {
-    return (
-      <div className="min-h-screen bg-[#0B0F19] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
-        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/30 rounded-full blur-[120px] mix-blend-screen animate-pulse"></div>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-fuchsia-600/20 rounded-full blur-[150px] mix-blend-screen"></div>
-
-        <div className="z-10 text-center max-w-md w-full backdrop-blur-xl bg-white/5 border border-white/10 p-10 rounded-3xl shadow-[0_0_50px_rgba(79,70,229,0.2)]">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <Sparkles className="absolute -top-4 -right-4 text-fuchsia-400 animate-bounce" size={32} />
-              <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-fuchsia-500 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(139,92,246,0.5)]">
-                <Flame size={48} className="text-white" />
-              </div>
-            </div>
-          </div>
-          
-          <h1 className="text-4xl md:text-5xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-purple-300 to-fuchsia-300 tracking-tight">
-            Alquimista<br/>Quàntic
-          </h1>
-          <p className="text-indigo-200/70 mb-4 text-lg">Domina la química inorgànica.</p>
-          <div className="mb-10 text-sm bg-white/10 rounded-full py-1 px-4 text-indigo-200">
-            +200 compostos i 11 famílies
-          </div>
-          
-          <button 
-            onClick={startGame}
-            className="w-full relative group overflow-hidden rounded-2xl p-[2px]"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 opacity-70 group-hover:opacity-100 animate-pulse transition-opacity"></div>
-            <div className="relative bg-[#0B0F19] bg-opacity-90 px-8 py-5 rounded-2xl flex items-center justify-center gap-3 transition-all group-hover:bg-opacity-0">
-              <Play className="fill-white" size={24} />
-              <span className="text-2xl font-bold tracking-wide">JUGAR ARA</span>
-            </div>
-          </button>
-
-          {bestScore > 0 && (
-            <div className="mt-8 flex items-center justify-center gap-2 text-fuchsia-300 font-semibold bg-white/5 py-3 rounded-full border border-fuchsia-500/20">
-              <Trophy size={20} /> Millor Puntuació: {bestScore}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // --- PANTALLA: GAME OVER ---
-  if (gameState === 'gameover') {
-    return (
-      <div className="min-h-screen bg-[#0B0F19] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
-        <div className="absolute inset-0 bg-rose-900/20 z-0"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[600px] max-h-[600px] bg-rose-600/20 rounded-full blur-[100px]"></div>
-
-        <div className="z-10 text-center max-w-md w-full backdrop-blur-2xl bg-[#0f1423]/80 border border-rose-500/30 p-10 rounded-3xl shadow-[0_0_50px_rgba(225,29,72,0.2)]">
-          <AlertTriangle className="mx-auto text-rose-500 mb-6" size={64} />
-          
-          <h2 className="text-4xl font-black text-white mb-2 tracking-tight">LABORATORI<br/>DESTRUÏT</h2>
-          <p className="text-rose-200/70 mb-8 text-lg">Has quedat sense vides!</p>
-
-          <div className="bg-white/5 rounded-2xl p-6 mb-8 border border-white/10">
-            <p className="text-sm text-slate-400 uppercase tracking-widest font-bold mb-1">Puntuació Final</p>
-            <p className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-400">{score}</p>
-          </div>
-
-          <button 
-            onClick={startGame}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xl py-5 rounded-2xl flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(79,70,229,0.4)] transition-transform active:scale-95"
-          >
-            <RotateCcw size={24} /> Tornar a Intentar
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // --- PANTALLA: JOC ---
-  return (
-    <div className={`min-h-screen bg-[#0B0F19] text-white flex flex-col font-sans overflow-hidden transition-colors duration-300 ${shakeEfx ? 'animate-[shake_0.4s_ease-in-out]' : ''} ${glowEfx ? 'bg-emerald-950/40' : ''}`}>
-      
-      <style dangerouslySetInnerHTML={{__html: `
+    <style>
+        /* Animacions personalitzades per als efectes del joc */
         @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          20%, 60% { transform: translateX(-10px); }
-          40%, 80% { transform: translateX(10px); }
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
         }
         @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
-      `}} />
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-[#0B0F19] text-white">
+    <!-- El contenidor on es muntarà l'aplicació React -->
+    <div id="root"></div>
 
-      {/* OVERLAY D'EXPLICACIÓ AL FALLAR */}
-      {showExplanation && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-[#13192B] border border-rose-500/50 p-6 md:p-8 rounded-3xl max-w-lg w-full shadow-[0_0_60px_rgba(225,29,72,0.3)] transform transition-all">
-            
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-rose-500/20 p-3 rounded-full">
-                <XCircle className="text-rose-500" size={32} />
-              </div>
-              <h2 className="text-3xl font-black text-white">Error de Càlcul!</h2>
-            </div>
+    <!-- Script principal de l'aplicació -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-            <div className="bg-white/5 rounded-2xl p-5 mb-6 border border-white/10">
-              <p className="text-sm text-slate-400 uppercase tracking-widest font-bold mb-2">La resposta correcta era:</p>
-              <div className="text-2xl md:text-3xl font-black text-emerald-400 capitalize">
-                {currentQuiz.type === 'name_to_formula' 
-                  ? <FormatFormula formula={currentQuiz.correctAnswer} /> 
-                  : currentQuiz.correctAnswer}
-              </div>
-            </div>
+        // --- ICONES VECTORIALS (Substitueixen Lucide React per fer-ho 100% autònom) ---
+        const Heart = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        );
+        const Zap = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        );
+        const Trophy = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        );
+        const Play = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="6 3 20 12 6 21 6 3"/></svg>
+        );
+        const RotateCcw = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        );
+        const AlertTriangle = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+        );
+        const Sparkles = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        );
+        const Flame = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+        );
+        const Info = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+        );
+        const CheckCircle = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        );
+        const XCircle = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+        );
+        const ArrowRight = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        );
 
-            <div className="bg-indigo-900/30 rounded-2xl p-5 mb-8 border border-indigo-500/30">
-              <div className="flex items-center gap-2 mb-2">
-                <Info size={20} className="text-indigo-400" />
-                <h3 className="font-bold text-indigo-300 text-lg uppercase tracking-wide">
-                  Repàs: {currentQuiz.compound.type}
-                </h3>
-              </div>
-              <p className="text-indigo-100/80 leading-relaxed text-lg">
-                {explanationsDB[currentQuiz.compound.type]}
-              </p>
-              <p className="mt-3 text-sm text-indigo-300/60 font-medium">
-                S'aplica al compost: <FormatFormula formula={currentQuiz.compound.formula} />
-              </p>
-            </div>
 
-            <button 
-              onClick={handleContinueAfterFailure}
-              className="w-full bg-gradient-to-r from-rose-600 to-orange-500 hover:from-rose-500 hover:to-orange-400 text-white font-bold text-xl py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95"
-            >
-              Entès, continuar <ArrowRight size={24} />
-            </button>
-          </div>
-        </div>
-      )}
+        // --- DICCIONARI D'EXPLICACIONS PER FAMÍLIA ---
+        const explanationsDB = {
+        'Òxid metàl·lic': "L'oxigen actua amb valència -2. S'intercanvia amb la valència del metall i se simplifiquen els subíndexs si són parells.",
+        'Òxid no metàl·lic': "L'oxigen (-2) s'uneix a un no-metall. En la nomenclatura tradicional s'acostumen a anomenar 'anhídrids'.",
+        'Peròxid': "Contenen el grup peròxid (O2) amb valència -2. L'enllaç O-O no es pot simplificar, per això sovint veuràs subíndexs que semblen no simplificats (ex: H2O2).",
+        'Hidrur metàl·lic': "L'hidrogen actua amb valència -1 en unir-se a un metall.",
+        'Hidrur no metàl·lic': "Hidrurs especials (grups 13, 14, 15) on l'hidrogen actua amb +1. Tenen noms propis tradicionals molt usats (amoníac, metà, silà...).",
+        'Hidràcid': "Són hidrurs de no-metalls dels grups 16 i 17. Com a gas acaben en '-ur d'hidrogen', i en dissolució aquosa s'anomenen 'àcid ...-hídric'.",
+        'Sal binària': "Unió d'un metall i un no-metall. El no-metall usa la seva valència negativa única i s'afegeix el sufix '-ur'.",
+        'Sal volàtil': "Unió de dos no-metalls. El més electronegatiu s'escriu a la dreta i se li afegeix el sufix '-ur'.",
+        'Hidròxid': "Compostos amb el grup (OH) que té valència global -1. S'uneix a un metall intercanviant aquesta valència.",
+        'Oxoàcid': "Àcids amb oxigen. Es formen sumant teòricament aigua (H2O) a un òxid no metàl·lic. En la tradicional, usen els prefixos i sufixos de l'element central (hipo-...-ós, ...-ós, ...-ic, per-...-ic).",
+        'Oxosal': "Deriven dels oxoàcids en substituir els hidrògens per un metall. Els sufixos de l'àcid canvien: '-ós' passa a '-it', i '-ic' passa a '-at'."
+        };
 
-      {/* Top HUD */}
-      <div className="flex justify-between items-center p-6 md:p-8 z-10 bg-gradient-to-b from-[#0B0F19] to-transparent">
-        <div className="flex gap-2">
-          {[...Array(3)].map((_, i) => (
-            <Heart 
-              key={i} 
-              size={32} 
-              className={`transition-all duration-300 ${i < lives ? 'text-rose-500 fill-rose-500 drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]' : 'text-slate-800 fill-slate-800'}`} 
-            />
-          ))}
-        </div>
-
-        <div className="flex flex-col items-end">
-          <div className="text-3xl md:text-4xl font-black tracking-tighter text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
-            {score.toString().padStart(4, '0')}
-          </div>
-          {combo > 1 && (
-            <div className="flex items-center gap-1 text-fuchsia-400 font-bold text-lg animate-pulse">
-              <Zap size={16} className="fill-fuchsia-400" /> COMBO x{combo}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Àrea de Pregunta */}
-      <div className={`flex-1 flex flex-col items-center justify-center p-6 z-10 transition-opacity duration-300 ${showExplanation ? 'opacity-30 blur-sm pointer-events-none' : 'opacity-100'}`}>
-        <div className="text-indigo-300/60 font-bold tracking-widest uppercase mb-4 text-sm md:text-base flex items-center gap-2">
-           {currentQuiz.compound.type}
-        </div>
+        // --- BASE DE DADES MASSIVA (aprox 200 compostos) ---
+        const compoundsDB = [
+        // ÒXIDS METÀL·LICS
+        { formula: 'Li2O', names: ['òxid de liti', 'monòxid de diliti', 'òxid lític'], type: 'Òxid metàl·lic' },
+        { formula: 'Na2O', names: ['òxid de sodi', 'monòxid de disodi', 'òxid sòdic'], type: 'Òxid metàl·lic' },
+        { formula: 'K2O', names: ['òxid de potassi', 'monòxid de dipotassi', 'òxid potàssic'], type: 'Òxid metàl·lic' },
+        { formula: 'BeO', names: ['òxid de beril·li', 'monòxid de beril·li'], type: 'Òxid metàl·lic' },
+        { formula: 'MgO', names: ['òxid de magnesi', 'monòxid de magnesi', 'òxid magnèsic'], type: 'Òxid metàl·lic' },
+        { formula: 'CaO', names: ['òxid de calci', 'monòxid de calci', 'òxid càlcic'], type: 'Òxid metàl·lic' },
+        { formula: 'SrO', names: ['òxid d\'estronci', 'monòxid d\'estronci'], type: 'Òxid metàl·lic' },
+        { formula: 'BaO', names: ['òxid de bari', 'monòxid de bari', 'òxid bàric'], type: 'Òxid metàl·lic' },
+        { formula: 'Al2O3', names: ['òxid d\'alumini', 'triòxid de dialumini', 'òxid alumínic'], type: 'Òxid metàl·lic' },
+        { formula: 'Fe2O3', names: ['òxid de ferro(III)', 'triòxid de diferro', 'òxid fèrric'], type: 'Òxid metàl·lic' },
+        { formula: 'FeO', names: ['òxid de ferro(II)', 'monòxid de ferro', 'òxid ferrós'], type: 'Òxid metàl·lic' },
+        { formula: 'Cu2O', names: ['òxid de coure(I)', 'monòxid de dicoure', 'òxid cuprós'], type: 'Òxid metàl·lic' },
+        { formula: 'CuO', names: ['òxid de coure(II)', 'monòxid de coure', 'òxid cúpric'], type: 'Òxid metàl·lic' },
+        { formula: 'Au2O', names: ['òxid d\'or(I)', 'monòxid de dior', 'òxid aurós'], type: 'Òxid metàl·lic' },
+        { formula: 'Au2O3', names: ['òxid d\'or(III)', 'triòxid de dior', 'òxid àuric'], type: 'Òxid metàl·lic' },
+        { formula: 'PbO', names: ['òxid de plom(II)', 'monòxid de plom', 'òxid plumbós'], type: 'Òxid metàl·lic' },
+        { formula: 'PbO2', names: ['òxid de plom(IV)', 'diòxid de plom', 'òxid plúmbic'], type: 'Òxid metàl·lic' },
+        { formula: 'NiO', names: ['òxid de níquel(II)', 'monòxid de níquel', 'òxid niquelós'], type: 'Òxid metàl·lic' },
+        { formula: 'Ni2O3', names: ['òxid de níquel(III)', 'triòxid de diníquel', 'òxid niquèlic'], type: 'Òxid metàl·lic' },
+        { formula: 'Ag2O', names: ['òxid de plata', 'monòxid de diplata', 'òxid argèntic'], type: 'Òxid metàl·lic' },
+        { formula: 'ZnO', names: ['òxid de zinc', 'monòxid de zinc', 'òxid zínquic'], type: 'Òxid metàl·lic' },
+        { formula: 'CrO', names: ['òxid de crom(II)', 'monòxid de crom', 'òxid cromós'], type: 'Òxid metàl·lic' },
+        { formula: 'Cr2O3', names: ['òxid de crom(III)', 'triòxid de dicrom', 'òxid cròmic'], type: 'Òxid metàl·lic' },
         
-        <div className="h-40 md:h-56 flex items-center justify-center animate-[float_4s_ease-in-out_infinite]">
-          {currentQuiz.type === 'formula_to_name' ? (
-            <FormatFormula formula={currentQuiz.questionText} large={true} />
-          ) : (
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-center text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-400 drop-shadow-sm px-4">
-              <span className="capitalize">{currentQuiz.questionText}</span>
-            </h2>
-          )}
-        </div>
-      </div>
+        // ÒXIDS NO METÀL·LICS (Anhídrids)
+        { formula: 'Cl2O', names: ['òxid de clor(I)', 'monòxid de diclor', 'anhídrid hipoclorós'], type: 'Òxid no metàl·lic' },
+        { formula: 'Cl2O3', names: ['òxid de clor(III)', 'triòxid de diclor', 'anhídrid clorós'], type: 'Òxid no metàl·lic' },
+        { formula: 'Cl2O5', names: ['òxid de clor(V)', 'pentaòxid de diclor', 'anhídrid clòric'], type: 'Òxid no metàl·lic' },
+        { formula: 'Cl2O7', names: ['òxid de clor(VII)', 'heptaòxid de diclor', 'anhídrid perclòric'], type: 'Òxid no metàl·lic' },
+        { formula: 'Br2O', names: ['òxid de brom(I)', 'monòxid de dibrom', 'anhídrid hipobromós'], type: 'Òxid no metàl·lic' },
+        { formula: 'Br2O5', names: ['òxid de brom(V)', 'pentaòxid de dibrom', 'anhídrid bròmic'], type: 'Òxid no metàl·lic' },
+        { formula: 'I2O5', names: ['òxid de iode(V)', 'pentaòxid de diiode', 'anhídrid iòdic'], type: 'Òxid no metàl·lic' },
+        { formula: 'I2O7', names: ['òxid de iode(VII)', 'heptaòxid de diiode', 'anhídrid periòdic'], type: 'Òxid no metàl·lic' },
+        { formula: 'SO2', names: ['òxid de sofre(IV)', 'diòxid de sofre', 'anhídrid sulfurós'], type: 'Òxid no metàl·lic' },
+        { formula: 'SO3', names: ['òxid de sofre(VI)', 'triòxid de sofre', 'anhídrid sulfúric'], type: 'Òxid no metàl·lic' },
+        { formula: 'SeO2', names: ['òxid de seleni(IV)', 'diòxid de seleni', 'anhídrid seleniós'], type: 'Òxid no metàl·lic' },
+        { formula: 'TeO3', names: ['òxid de tel·luri(VI)', 'triòxid de tel·luri', 'anhídrid tel·lúric'], type: 'Òxid no metàl·lic' },
+        { formula: 'N2O3', names: ['òxid de nitrogen(III)', 'triòxid de dinitrogen', 'anhídrid nitrós'], type: 'Òxid no metàl·lic' },
+        { formula: 'N2O5', names: ['òxid de nitrogen(V)', 'pentaòxid de dinitrogen', 'anhídrid nítric'], type: 'Òxid no metàl·lic' },
+        { formula: 'CO', names: ['òxid de carboni(II)', 'monòxid de carboni', 'anhídrid carbonós'], type: 'Òxid no metàl·lic' },
+        { formula: 'CO2', names: ['òxid de carboni(IV)', 'diòxid de carboni', 'anhídrid carbònic'], type: 'Òxid no metàl·lic' },
+        { formula: 'SiO2', names: ['òxid de silici', 'diòxid de silici', 'anhídrid silícic'], type: 'Òxid no metàl·lic' },
+        { formula: 'P2O3', names: ['òxid de fòsfor(III)', 'triòxid de difòsfor', 'anhídrid fosforós'], type: 'Òxid no metàl·lic' },
+        { formula: 'P2O5', names: ['òxid de fòsfor(V)', 'pentaòxid de difòsfor', 'anhídrid fosfòric'], type: 'Òxid no metàl·lic' },
 
-      {/* Graella de Respostes */}
-      <div className={`p-4 md:p-8 z-10 w-full max-w-4xl mx-auto pb-12 transition-opacity duration-300 ${showExplanation ? 'opacity-30 blur-sm pointer-events-none' : 'opacity-100'}`}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {currentQuiz.options.map((option, index) => {
-            
-            let btnStyle = "bg-white/5 border-white/10 hover:bg-white/10 text-slate-200";
-            let formatAsFormula = currentQuiz.type === 'name_to_formula';
+        // PERÒXIDS
+        { formula: 'H2O2', names: ['peròxid d\'hidrogen', 'aigua oxigenada'], type: 'Peròxid' },
+        { formula: 'Na2O2', names: ['peròxid de sodi', 'peròxid sòdic'], type: 'Peròxid' },
+        { formula: 'K2O2', names: ['peròxid de potassi', 'peròxid potàssic'], type: 'Peròxid' },
+        { formula: 'CaO2', names: ['peròxid de calci', 'peròxid càlcic'], type: 'Peròxid' },
+        { formula: 'BaO2', names: ['peròxid de bari', 'peròxid bàric'], type: 'Peròxid' },
+        { formula: 'MgO2', names: ['peròxid de magnesi', 'peròxid magnèsic'], type: 'Peròxid' },
+        { formula: 'CuO2', names: ['peròxid de coure(II)', 'peròxid cúpric'], type: 'Peròxid' },
+        { formula: 'ZnO2', names: ['peròxid de zinc', 'peròxid zínquic'], type: 'Peròxid' },
 
-            if (selectedAnswer !== null) {
-              if (option === currentQuiz.correctAnswer) {
-                btnStyle = "bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_30px_rgba(52,211,153,0.3)] ring-2 ring-emerald-400 scale-[1.02]";
-              } else if (option === selectedAnswer && option !== currentQuiz.correctAnswer) {
-                btnStyle = "bg-rose-500/20 border-rose-500 text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.3)] opacity-50";
-              } else {
-                btnStyle = "bg-white/5 border-white/5 text-slate-500 opacity-40";
-              }
+        // HIDRURS METÀL·LICS
+        { formula: 'LiH', names: ['hidrur de liti', 'monohidrur de liti', 'hidrur lític'], type: 'Hidrur metàl·lic' },
+        { formula: 'NaH', names: ['hidrur de sodi', 'monohidrur de sodi', 'hidrur sòdic'], type: 'Hidrur metàl·lic' },
+        { formula: 'KH', names: ['hidrur de potassi', 'monohidrur de potassi', 'hidrur potàssic'], type: 'Hidrur metàl·lic' },
+        { formula: 'MgH2', names: ['hidrur de magnesi', 'dihidrur de magnesi', 'hidrur magnèsic'], type: 'Hidrur metàl·lic' },
+        { formula: 'CaH2', names: ['hidrur de calci', 'dihidrur de calci', 'hidrur càlcic'], type: 'Hidrur metàl·lic' },
+        { formula: 'FeH2', names: ['hidrur de ferro(II)', 'dihidrur de ferro', 'hidrur ferrós'], type: 'Hidrur metàl·lic' },
+        { formula: 'FeH3', names: ['hidrur de ferro(III)', 'trihidrur de ferro', 'hidrur fèrric'], type: 'Hidrur metàl·lic' },
+        { formula: 'CuH', names: ['hidrur de coure(I)', 'monohidrur de coure', 'hidrur cuprós'], type: 'Hidrur metàl·lic' },
+        { formula: 'CuH2', names: ['hidrur de coure(II)', 'dihidrur de coure', 'hidrur cúpric'], type: 'Hidrur metàl·lic' },
+        { formula: 'PbH4', names: ['hidrur de plom(IV)', 'tetrahidrur de plom', 'hidrur plúmbic'], type: 'Hidrur metàl·lic' },
+        { formula: 'AlH3', names: ['hidrur d\'alumini', 'trihidrur d\'alumini', 'hidrur alumínic'], type: 'Hidrur metàl·lic' },
+
+        // HIDRURS NO METÀL·LICS
+        { formula: 'NH3', names: ['amoníac', 'trihidrur de nitrogen', 'hidrur de nitrogen(III)'], type: 'Hidrur no metàl·lic' },
+        { formula: 'PH3', names: ['fosfina', 'fosfà', 'trihidrur de fòsfor'], type: 'Hidrur no metàl·lic' },
+        { formula: 'AsH3', names: ['arsina', 'arsà', 'trihidrur d\'arsènic'], type: 'Hidrur no metàl·lic' },
+        { formula: 'SbH3', names: ['estibina', 'estibà', 'trihidrur d\'antimoni'], type: 'Hidrur no metàl·lic' },
+        { formula: 'CH4', names: ['metà', 'tetrahidrur de carboni'], type: 'Hidrur no metàl·lic' },
+        { formula: 'SiH4', names: ['silà', 'tetrahidrur de silici'], type: 'Hidrur no metàl·lic' },
+        { formula: 'BH3', names: ['borà', 'trihidrur de bor'], type: 'Hidrur no metàl·lic' },
+
+        // HIDRÀCIDS
+        { formula: 'HF', names: ['àcid fluorhídric', 'fluorur d\'hidrogen'], type: 'Hidràcid' },
+        { formula: 'HCl', names: ['àcid clorhídric', 'clorur d\'hidrogen'], type: 'Hidràcid' },
+        { formula: 'HBr', names: ['àcid bromhídric', 'bromur d\'hidrogen'], type: 'Hidràcid' },
+        { formula: 'HI', names: ['àcid iodhídric', 'iodur d\'hidrogen'], type: 'Hidràcid' },
+        { formula: 'H2S', names: ['àcid sulfhídric', 'sulfur de dihidrogen', 'sulfur d\'hidrogen'], type: 'Hidràcid' },
+        { formula: 'H2Se', names: ['àcid selenhídric', 'selenur de dihidrogen', 'selenur d\'hidrogen'], type: 'Hidràcid' },
+        { formula: 'H2Te', names: ['àcid tel·lurhídric', 'tel·lurur de dihidrogen', 'tel·lurur d\'hidrogen'], type: 'Hidràcid' },
+
+        // SALS BINÀRIES
+        { formula: 'LiF', names: ['fluorur de liti', 'monofluorur de liti', 'fluorur lític'], type: 'Sal binària' },
+        { formula: 'NaCl', names: ['clorur de sodi', 'monoclorur de sodi', 'clorur sòdic'], type: 'Sal binària' },
+        { formula: 'KBr', names: ['bromur de potassi', 'monobromur de potassi', 'bromur potàssic'], type: 'Sal binària' },
+        { formula: 'MgI2', names: ['iodur de magnesi', 'diiodur de magnesi', 'iodur magnèsic'], type: 'Sal binària' },
+        { formula: 'CaF2', names: ['fluorur de calci', 'difluorur de calci', 'fluorur càlcic'], type: 'Sal binària' },
+        { formula: 'BaCl2', names: ['clorur de bari', 'diclorur de bari', 'clorur bàric'], type: 'Sal binària' },
+        { formula: 'FeCl2', names: ['clorur de ferro(II)', 'diclorur de ferro', 'clorur ferrós'], type: 'Sal binària' },
+        { formula: 'FeCl3', names: ['clorur de ferro(III)', 'triclorur de ferro', 'clorur fèrric'], type: 'Sal binària' },
+        { formula: 'CuBr', names: ['bromur de coure(I)', 'monobromur de coure', 'bromur cuprós'], type: 'Sal binària' },
+        { formula: 'CuBr2', names: ['bromur de coure(II)', 'dibromur de coure', 'bromur cúpric'], type: 'Sal binària' },
+        { formula: 'AgCl', names: ['clorur de plata', 'monoclorur de plata', 'clorur argèntic'], type: 'Sal binària' },
+        { formula: 'ZnS', names: ['sulfur de zinc', 'monosulfur de zinc', 'sulfur zínquic'], type: 'Sal binària' },
+        { formula: 'PbS', names: ['sulfur de plom(II)', 'monosulfur de plom', 'sulfur plumbós'], type: 'Sal binària' },
+        { formula: 'PbS2', names: ['sulfur de plom(IV)', 'disulfur de plom', 'sulfur plúmbic'], type: 'Sal binària' },
+        { formula: 'AlCl3', names: ['clorur d\'alumini', 'triclorur d\'alumini', 'clorur alumínic'], type: 'Sal binària' },
+        { formula: 'K2S', names: ['sulfur de potassi', 'monosulfur de dipotassi', 'sulfur potàssic'], type: 'Sal binària' },
+
+        // SALS VOLÀTILS (No metall + No metall)
+        { formula: 'BrF3', names: ['trifluorur de brom', 'fluorur de brom(III)'], type: 'Sal volàtil' },
+        { formula: 'BrF5', names: ['pentafluorur de brom', 'fluorur de brom(V)'], type: 'Sal volàtil' },
+        { formula: 'ICl', names: ['monoclorur de iode', 'clorur de iode(I)'], type: 'Sal volàtil' },
+        { formula: 'ICl3', names: ['triclorur de iode', 'clorur de iode(III)'], type: 'Sal volàtil' },
+        { formula: 'PCl3', names: ['triclorur de fòsfor', 'clorur de fòsfor(III)'], type: 'Sal volàtil' },
+        { formula: 'PCl5', names: ['pentaclorur de fòsfor', 'clorur de fòsfor(V)'], type: 'Sal volàtil' },
+        { formula: 'CS2', names: ['disulfur de carboni', 'sulfur de carboni(IV)'], type: 'Sal volàtil' },
+        { formula: 'SF4', names: ['tetrafluorur de sofre', 'fluorur de sofre(IV)'], type: 'Sal volàtil' },
+        { formula: 'SF6', names: ['hexafluorur de sofre', 'fluorur de sofre(VI)'], type: 'Sal volàtil' },
+        { formula: 'BCl3', names: ['triclorur de bor', 'clorur de bor'], type: 'Sal volàtil' },
+
+        // HIDRÒXIDS
+        { formula: 'LiOH', names: ['hidròxid de liti', 'hidròxid lític'], type: 'Hidròxid' },
+        { formula: 'NaOH', names: ['hidròxid de sodi', 'hidròxid sòdic'], type: 'Hidròxid' },
+        { formula: 'KOH', names: ['hidròxid de potassi', 'hidròxid potàssic'], type: 'Hidròxid' },
+        { formula: 'Mg(OH)2', names: ['hidròxid de magnesi', 'dihidròxid de magnesi', 'hidròxid magnèsic'], type: 'Hidròxid' },
+        { formula: 'Ca(OH)2', names: ['hidròxid de calci', 'dihidròxid de calci', 'hidròxid càlcic'], type: 'Hidròxid' },
+        { formula: 'Ba(OH)2', names: ['hidròxid de bari', 'dihidròxid de bari', 'hidròxid bàric'], type: 'Hidròxid' },
+        { formula: 'Fe(OH)2', names: ['hidròxid de ferro(II)', 'dihidròxid de ferro', 'hidròxid ferrós'], type: 'Hidròxid' },
+        { formula: 'Fe(OH)3', names: ['hidròxid de ferro(III)', 'trihidròxid de ferro', 'hidròxid fèrric'], type: 'Hidròxid' },
+        { formula: 'Cu(OH)', names: ['hidròxid de coure(I)', 'monohidròxid de coure', 'hidròxid cuprós'], type: 'Hidròxid' },
+        { formula: 'Cu(OH)2', names: ['hidròxid de coure(II)', 'dihidròxid de coure', 'hidròxid cúpric'], type: 'Hidròxid' },
+        { formula: 'Al(OH)3', names: ['hidròxid d\'alumini', 'trihidròxid d\'alumini', 'hidròxid alumínic'], type: 'Hidròxid' },
+        { formula: 'Zn(OH)2', names: ['hidròxid de zinc', 'dihidròxid de zinc', 'hidròxid zínquic'], type: 'Hidròxid' },
+        { formula: 'Pb(OH)2', names: ['hidròxid de plom(II)', 'dihidròxid de plom', 'hidròxid plumbós'], type: 'Hidròxid' },
+        { formula: 'Pb(OH)4', names: ['hidròxid de plom(IV)', 'tetrahidròxid de plom', 'hidròxid plúmbic'], type: 'Hidròxid' },
+        { formula: 'AgOH', names: ['hidròxid de plata', 'hidròxid argèntic'], type: 'Hidròxid' },
+
+        // OXOÀCIDS
+        { formula: 'HClO', names: ['àcid hipoclorós', 'oxoclorat(I) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'HClO2', names: ['àcid clorós', 'dioxoclorat(III) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'HClO3', names: ['àcid clòric', 'trioxoclorat(V) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'HClO4', names: ['àcid perclòric', 'tetraoxoclorat(VII) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'HBrO', names: ['àcid hipobromós', 'oxobromat(I) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'HBrO2', names: ['àcid bromós', 'dioxobromat(III) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'HBrO3', names: ['àcid bròmic', 'trioxobromat(V) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'HBrO4', names: ['àcid perbròmic', 'tetraoxobromat(VII) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'HIO', names: ['àcid hipoiodós', 'oxoiodat(I) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'HIO3', names: ['àcid iòdic', 'trioxoiodat(V) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'HIO4', names: ['àcid periòdic', 'tetraoxoiodat(VII) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'H2SO2', names: ['àcid hiposulfurós', 'dioxosulfat(II) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'H2SO3', names: ['àcid sulfurós', 'trioxosulfat(IV) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'H2SO4', names: ['àcid sulfúric', 'tetraoxosulfat(VI) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'H2SeO3', names: ['àcid seleniós', 'trioxoseleniat(IV) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'H2SeO4', names: ['àcid selènic', 'tetraoxoseleniat(VI) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'HNO2', names: ['àcid nitrós', 'dioxonitrat(III) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'HNO3', names: ['àcid nítric', 'trioxonitrat(V) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'H3PO3', names: ['àcid fosforós', 'trioxofosfat(III) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'H3PO4', names: ['àcid fosfòric', 'tetraoxofosfat(V) d\'hidrogen', 'àcid ortofosfòric'], type: 'Oxoàcid' },
+        { formula: 'H2CO3', names: ['àcid carbònic', 'trioxocarbonat(IV) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'H4SiO4', names: ['àcid silícic', 'tetraoxosilicat(IV) d\'hidrogen', 'àcid ortosilícic'], type: 'Oxoàcid' },
+        { formula: 'H3BO3', names: ['àcid bòric', 'trioxoborat(III) d\'hidrogen', 'àcid ortobòric'], type: 'Oxoàcid' },
+        { formula: 'HMnO4', names: ['àcid permangànic', 'tetraoxomanganat(VII) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'H2CrO4', names: ['àcid cròmic', 'tetraoxocromat(VI) d\'hidrogen'], type: 'Oxoàcid' },
+        { formula: 'H2Cr2O7', names: ['àcid dicròmic', 'heptaoxodicromat(VI) d\'hidrogen'], type: 'Oxoàcid' },
+
+        // OXOSALS
+        { formula: 'NaClO', names: ['hipoclorit de sodi', 'hipoclorit sòdic'], type: 'Oxosal' },
+        { formula: 'NaClO2', names: ['clorit de sodi', 'clorit sòdic'], type: 'Oxosal' },
+        { formula: 'NaClO3', names: ['clorat de sodi', 'clorat sòdic'], type: 'Oxosal' },
+        { formula: 'NaClO4', names: ['perclorat de sodi', 'perclorat sòdic'], type: 'Oxosal' },
+        { formula: 'KNO2', names: ['nitrit de potassi', 'nitrit potàssic'], type: 'Oxosal' },
+        { formula: 'KNO3', names: ['nitrat de potassi', 'nitrat potàssic'], type: 'Oxosal' },
+        { formula: 'Ca(NO3)2', names: ['nitrat de calci', 'nitrat càlcic'], type: 'Oxosal' },
+        { formula: 'AgNO3', names: ['nitrat de plata', 'nitrat argèntic'], type: 'Oxosal' },
+        { formula: 'Na2SO3', names: ['sulfit de sodi', 'sulfit sòdic'], type: 'Oxosal' },
+        { formula: 'Na2SO4', names: ['sulfat de sodi', 'sulfat sòdic'], type: 'Oxosal' },
+        { formula: 'K2SO4', names: ['sulfat de potassi', 'sulfat potàssic'], type: 'Oxosal' },
+        { formula: 'CaSO4', names: ['sulfat de calci', 'sulfat càlcic'], type: 'Oxosal' },
+        { formula: 'BaSO4', names: ['sulfat de bari', 'sulfat bàric'], type: 'Oxosal' },
+        { formula: 'FeSO4', names: ['sulfat de ferro(II)', 'sulfat ferrós'], type: 'Oxosal' },
+        { formula: 'Fe2(SO4)3', names: ['sulfat de ferro(III)', 'sulfat fèrric'], type: 'Oxosal' },
+        { formula: 'CuSO4', names: ['sulfat de coure(II)', 'sulfat cúpric'], type: 'Oxosal' },
+        { formula: 'CaCO3', names: ['carbonat de calci', 'carbonat càlcic'], type: 'Oxosal' },
+        { formula: 'Na2CO3', names: ['carbonat de sodi', 'carbonat sòdic'], type: 'Oxosal' },
+        { formula: 'K2CO3', names: ['carbonat de potassi', 'carbonat potàssic'], type: 'Oxosal' },
+        { formula: 'KClO3', names: ['clorat de potassi', 'clorat potàssic'], type: 'Oxosal' },
+        { formula: 'KMnO4', names: ['permanganat de potassi', 'permanganat potàssic'], type: 'Oxosal' },
+        { formula: 'K2CrO4', names: ['cromat de potassi', 'cromat potàssic'], type: 'Oxosal' },
+        { formula: 'K2Cr2O7', names: ['dicromat de potassi', 'dicromat potàssic'], type: 'Oxosal' },
+        { formula: 'Al2(SO4)3', names: ['sulfat d\'alumini', 'sulfat alumínic'], type: 'Oxosal' },
+        { formula: 'Pb(NO3)2', names: ['nitrat de plom(II)', 'nitrat plumbós'], type: 'Oxosal' },
+        { formula: 'Na3PO4', names: ['fosfat de sodi', 'ortofosfat de sodi'], type: 'Oxosal' }
+        ];
+
+        // Utilitat visual per renderitzar fórmules amb subíndexs
+        const FormatFormula = ({ formula, large = false }) => {
+        return (
+            <span className={`font-black tracking-widest ${large ? 'text-5xl md:text-7xl' : 'text-xl'} drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]`}>
+            {formula.split(/(\d+)/).map((part, index) => {
+                if (!isNaN(part) && part !== '') {
+                return <sub key={index} className={`${large ? 'text-3xl md:text-4xl' : 'text-sm'} font-bold text-indigo-300 relative top-2`}>{part}</sub>;
+                }
+                return <span key={index}>{part}</span>;
+            })}
+            </span>
+        );
+        };
+
+        // Generador de preguntes (opció múltiple)
+        const generateQuiz = () => {
+        const targetIndex = Math.floor(Math.random() * compoundsDB.length);
+        const target = compoundsDB[targetIndex];
+        
+        const questionType = Math.random() > 0.5 ? 'formula_to_name' : 'name_to_formula';
+        const options = new Set();
+        
+        let correctOptionStr = '';
+        if (questionType === 'formula_to_name') {
+            correctOptionStr = target.names[Math.floor(Math.random() * target.names.length)];
+        } else {
+            correctOptionStr = target.formula;
+        }
+        options.add(correctOptionStr);
+
+        while(options.size < 4) {
+            const randomCompound = compoundsDB[Math.floor(Math.random() * compoundsDB.length)];
+            if (randomCompound.formula !== target.formula) {
+            if (questionType === 'formula_to_name') {
+                const randomName = randomCompound.names[Math.floor(Math.random() * randomCompound.names.length)];
+                options.add(randomName);
+            } else {
+                options.add(randomCompound.formula);
             }
+            }
+        }
 
+        const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
+
+        return {
+            compound: target,
+            type: questionType,
+            questionText: questionType === 'formula_to_name' 
+            ? target.formula 
+            : target.names[Math.floor(Math.random() * target.names.length)], 
+            correctAnswer: correctOptionStr,
+            options: shuffledOptions
+        };
+        };
+
+        function GameApp() {
+        const [gameState, setGameState] = useState('menu');
+        const [currentQuiz, setCurrentQuiz] = useState(null);
+        const [score, setScore] = useState(0);
+        const [lives, setLives] = useState(3);
+        const [combo, setCombo] = useState(1);
+        const [bestScore, setBestScore] = useState(0);
+        
+        const [selectedAnswer, setSelectedAnswer] = useState(null);
+        const [isAnimating, setIsAnimating] = useState(false);
+        const [shakeEfx, setShakeEfx] = useState(false);
+        const [glowEfx, setGlowEfx] = useState(false);
+        const [showExplanation, setShowExplanation] = useState(false);
+
+        const startGame = () => {
+            setScore(0);
+            setLives(3);
+            setCombo(1);
+            setCurrentQuiz(generateQuiz());
+            setShowExplanation(false);
+            setGameState('playing');
+        };
+
+        const handleAnswer = (answer) => {
+            if (isAnimating || showExplanation) return;
+            setIsAnimating(true);
+            setSelectedAnswer(answer);
+
+            const isCorrect = answer === currentQuiz.correctAnswer;
+
+            if (isCorrect) {
+            setGlowEfx(true);
+            const pointsEarned = 10 * combo;
+            setScore(s => s + pointsEarned);
+            setCombo(c => Math.min(c + 1, 5));
+            
+            setTimeout(() => {
+                setGlowEfx(false);
+                setCurrentQuiz(generateQuiz());
+                setSelectedAnswer(null);
+                setIsAnimating(false);
+            }, 800);
+
+            } else {
+            setShakeEfx(true);
+            setCombo(1); 
+            
+            setTimeout(() => {
+                setShakeEfx(false);
+                setShowExplanation(true);
+            }, 800);
+            }
+        };
+
+        const handleContinueAfterFailure = () => {
+            const newLives = lives - 1;
+            setLives(newLives);
+            setShowExplanation(false);
+            setSelectedAnswer(null);
+            setIsAnimating(false);
+
+            if (newLives <= 0) {
+            if (score > bestScore) setBestScore(score);
+            setGameState('gameover');
+            } else {
+            setCurrentQuiz(generateQuiz());
+            }
+        };
+
+        if (gameState === 'menu') {
             return (
-              <button
-                key={index}
-                onClick={() => handleAnswer(option)}
-                disabled={isAnimating || showExplanation}
-                className={`relative w-full p-6 md:p-8 rounded-2xl border-2 backdrop-blur-md transition-all duration-300 text-xl md:text-2xl font-bold flex items-center justify-center text-center overflow-hidden active:scale-95 ${btnStyle}`}
-              >
-                {selectedAnswer === null && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-white/5 to-purple-500/0 opacity-0 hover:opacity-100 transition-opacity duration-500 transform -translate-x-full hover:translate-x-full"></div>
-                )}
-                
-                {formatAsFormula ? (
-                  <FormatFormula formula={option} />
-                ) : (
-                  <span className="capitalize">{option}</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+            <div className="min-h-screen bg-[#0B0F19] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+                <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/30 rounded-full blur-[120px] mix-blend-screen animate-pulse"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-fuchsia-600/20 rounded-full blur-[150px] mix-blend-screen"></div>
 
-    </div>
-  );
-}
+                <div className="z-10 text-center max-w-md w-full backdrop-blur-xl bg-white/5 border border-white/10 p-10 rounded-3xl shadow-[0_0_50px_rgba(79,70,229,0.2)]">
+                <div className="flex justify-center mb-6">
+                    <div className="relative">
+                    <Sparkles className="absolute -top-4 -right-4 text-fuchsia-400 animate-bounce" size={32} />
+                    <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-fuchsia-500 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(139,92,246,0.5)]">
+                        <Flame size={48} className="text-white" />
+                    </div>
+                    </div>
+                </div>
+                
+                <h1 className="text-4xl md:text-5xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-purple-300 to-fuchsia-300 tracking-tight">
+                    Alquimista<br/>Quàntic
+                </h1>
+                <p className="text-indigo-200/70 mb-4 text-lg">Domina la química inorgànica.</p>
+                <div className="mb-10 text-sm bg-white/10 rounded-full py-1 px-4 text-indigo-200 inline-block">
+                    +200 compostos i 11 famílies
+                </div>
+                
+                <button 
+                    onClick={startGame}
+                    className="w-full relative group overflow-hidden rounded-2xl p-[2px]"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 opacity-70 group-hover:opacity-100 animate-pulse transition-opacity"></div>
+                    <div className="relative bg-[#0B0F19] bg-opacity-90 px-8 py-5 rounded-2xl flex items-center justify-center gap-3 transition-all group-hover:bg-opacity-0">
+                    <Play className="text-white fill-current" size={24} />
+                    <span className="text-2xl font-bold tracking-wide">JUGAR ARA</span>
+                    </div>
+                </button>
+
+                {bestScore > 0 && (
+                    <div className="mt-8 flex items-center justify-center gap-2 text-fuchsia-300 font-semibold bg-white/5 py-3 rounded-full border border-fuchsia-500/20">
+                    <Trophy size={20} /> Millor Puntuació: {bestScore}
+                    </div>
+                )}
+                </div>
+            </div>
+            );
+        }
+
+        if (gameState === 'gameover') {
+            return (
+            <div className="min-h-screen bg-[#0B0F19] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+                <div className="absolute inset-0 bg-rose-900/20 z-0"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[600px] max-h-[600px] bg-rose-600/20 rounded-full blur-[100px]"></div>
+
+                <div className="z-10 text-center max-w-md w-full backdrop-blur-2xl bg-[#0f1423]/80 border border-rose-500/30 p-10 rounded-3xl shadow-[0_0_50px_rgba(225,29,72,0.2)]">
+                <AlertTriangle className="mx-auto text-rose-500 mb-6" size={64} />
+                
+                <h2 className="text-4xl font-black text-white mb-2 tracking-tight">LABORATORI<br/>DESTRUÏT</h2>
+                <p className="text-rose-200/70 mb-8 text-lg">Has quedat sense vides!</p>
+
+                <div className="bg-white/5 rounded-2xl p-6 mb-8 border border-white/10">
+                    <p className="text-sm text-slate-400 uppercase tracking-widest font-bold mb-1">Puntuació Final</p>
+                    <p className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-400">{score}</p>
+                </div>
+
+                <button 
+                    onClick={startGame}
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xl py-5 rounded-2xl flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(79,70,229,0.4)] transition-transform active:scale-95"
+                >
+                    <RotateCcw size={24} /> Tornar a Intentar
+                </button>
+                </div>
+            </div>
+            );
+        }
+
+        return (
+            <div className={`min-h-screen bg-[#0B0F19] text-white flex flex-col font-sans overflow-hidden transition-colors duration-300 ${shakeEfx ? 'animate-shake' : ''} ${glowEfx ? 'bg-emerald-950/40' : ''}`}>
+            
+            {showExplanation && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300">
+                <div className="bg-[#13192B] border border-rose-500/50 p-6 md:p-8 rounded-3xl max-w-lg w-full shadow-[0_0_60px_rgba(225,29,72,0.3)] transform transition-all">
+                    
+                    <div className="flex items-center gap-3 mb-6">
+                    <div className="bg-rose-500/20 p-3 rounded-full">
+                        <XCircle className="text-rose-500" size={32} />
+                    </div>
+                    <h2 className="text-3xl font-black text-white">Error de Càlcul!</h2>
+                    </div>
+
+                    <div className="bg-white/5 rounded-2xl p-5 mb-6 border border-white/10">
+                    <p className="text-sm text-slate-400 uppercase tracking-widest font-bold mb-2">La resposta correcta era:</p>
+                    <div className="text-2xl md:text-3xl font-black text-emerald-400 capitalize">
+                        {currentQuiz.type === 'name_to_formula' 
+                        ? <FormatFormula formula={currentQuiz.correctAnswer} /> 
+                        : currentQuiz.correctAnswer}
+                    </div>
+                    </div>
+
+                    <div className="bg-indigo-900/30 rounded-2xl p-5 mb-8 border border-indigo-500/30">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Info size={20} className="text-indigo-400" />
+                        <h3 className="font-bold text-indigo-300 text-lg uppercase tracking-wide">
+                        Repàs: {currentQuiz.compound.type}
+                        </h3>
+                    </div>
+                    <p className="text-indigo-100/80 leading-relaxed text-lg">
+                        {explanationsDB[currentQuiz.compound.type]}
+                    </p>
+                    <p className="mt-3 text-sm text-indigo-300/60 font-medium flex items-center gap-2">
+                        S'aplica al compost: <FormatFormula formula={currentQuiz.compound.formula} />
+                    </p>
+                    </div>
+
+                    <button 
+                    onClick={handleContinueAfterFailure}
+                    className="w-full bg-gradient-to-r from-rose-600 to-orange-500 hover:from-rose-500 hover:to-orange-400 text-white font-bold text-xl py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95"
+                    >
+                    Entès, continuar <ArrowRight size={24} />
+                    </button>
+                </div>
+                </div>
+            )}
+
+            <div className="flex justify-between items-center p-6 md:p-8 z-10 bg-gradient-to-b from-[#0B0F19] to-transparent">
+                <div className="flex gap-2">
+                {[...Array(3)].map((_, i) => (
+                    <div key={i} className={`transition-all duration-300 ${i < lives ? 'text-rose-500 drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]' : 'text-slate-800'}`}>
+                        <Heart size={32} className={i < lives ? "fill-current" : "fill-current"} />
+                    </div>
+                ))}
+                </div>
+
+                <div className="flex flex-col items-end">
+                <div className="text-3xl md:text-4xl font-black tracking-tighter text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+                    {score.toString().padStart(4, '0')}
+                </div>
+                {combo > 1 && (
+                    <div className="flex items-center gap-1 text-fuchsia-400 font-bold text-lg animate-pulse">
+                    <Zap size={16} className="fill-current" /> COMBO x{combo}
+                    </div>
+                )}
+                </div>
+            </div>
+
+            <div className={`flex-1 flex flex-col items-center justify-center p-6 z-10 transition-opacity duration-300 ${showExplanation ? 'opacity-30 blur-sm pointer-events-none' : 'opacity-100'}`}>
+                <div className="text-indigo-300/60 font-bold tracking-widest uppercase mb-4 text-sm md:text-base flex items-center gap-2">
+                {currentQuiz.compound.type}
+                </div>
+                
+                <div className="h-40 md:h-56 flex items-center justify-center animate-[float_4s_ease-in-out_infinite] animate-float">
+                {currentQuiz.type === 'formula_to_name' ? (
+                    <FormatFormula formula={currentQuiz.questionText} large={true} />
+                ) : (
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-center text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-400 drop-shadow-sm px-4">
+                    <span className="capitalize">{currentQuiz.questionText}</span>
+                    </h2>
+                )}
+                </div>
+            </div>
+
+            <div className={`p-4 md:p-8 z-10 w-full max-w-4xl mx-auto pb-12 transition-opacity duration-300 ${showExplanation ? 'opacity-30 blur-sm pointer-events-none' : 'opacity-100'}`}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {currentQuiz.options.map((option, index) => {
+                    
+                    let btnStyle = "bg-white/5 border-white/10 hover:bg-white/10 text-slate-200";
+                    let formatAsFormula = currentQuiz.type === 'name_to_formula';
+
+                    if (selectedAnswer !== null) {
+                    if (option === currentQuiz.correctAnswer) {
+                        btnStyle = "bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_30px_rgba(52,211,153,0.3)] ring-2 ring-emerald-400 scale-[1.02]";
+                    } else if (option === selectedAnswer && option !== currentQuiz.correctAnswer) {
+                        btnStyle = "bg-rose-500/20 border-rose-500 text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.3)] opacity-50";
+                    } else {
+                        btnStyle = "bg-white/5 border-white/5 text-slate-500 opacity-40";
+                    }
+                    }
+
+                    return (
+                    <button
+                        key={index}
+                        onClick={() => handleAnswer(option)}
+                        disabled={isAnimating || showExplanation}
+                        className={`relative w-full p-6 md:p-8 rounded-2xl border-2 backdrop-blur-md transition-all duration-300 text-xl md:text-2xl font-bold flex items-center justify-center text-center overflow-hidden active:scale-95 ${btnStyle}`}
+                    >
+                        {selectedAnswer === null && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-white/5 to-purple-500/0 opacity-0 hover:opacity-100 transition-opacity duration-500 transform -translate-x-full hover:translate-x-full"></div>
+                        )}
+                        
+                        {formatAsFormula ? (
+                        <FormatFormula formula={option} />
+                        ) : (
+                        <span className="capitalize">{option}</span>
+                        )}
+                    </button>
+                    );
+                })}
+                </div>
+            </div>
+            </div>
+        );
+        }
+
+        // Renderitzar l'aplicació dins el div #root
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<GameApp />);
+    </script>
+</body>
+</html>
