@@ -39,7 +39,7 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- ICONES VECTORIALS (Substitueixen Lucide React per fer-ho 100% autònom) ---
+        // --- ICONES VECTORIALS ---
         const Heart = ({ size = 24, className = "" }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
         );
@@ -76,9 +76,12 @@
         const ArrowRight = ({ size = 24, className = "" }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         );
+        const Lightbulb = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+        );
 
 
-        // --- DICCIONARI D'EXPLICACIONS PER FAMÍLIA ---
+        // --- DICCIONARI D'EXPLICACIONS PER FALLOS (Teòriques) ---
         const explanationsDB = {
         'Òxid metàl·lic': "L'oxigen actua amb valència -2. S'intercanvia amb la valència del metall i se simplifiquen els subíndexs si són parells.",
         'Òxid no metàl·lic': "L'oxigen (-2) s'uneix a un no-metall. En la nomenclatura tradicional s'acostumen a anomenar 'anhídrids'.",
@@ -95,9 +98,26 @@
         'Sal hidratada': "Sals que contenen molècules d'aigua de cristal·lització en la seva estructura. S'indica amb un prefix numeral grec seguit de la paraula '-hidratat'."
         };
 
+        // --- DICCIONARI DE "TIPS" (Consells mnemotècnics cada 5 intents) ---
+        const tipsDB = {
+        'Òxid metàl·lic': "Recorda: Als òxids metàl·lics fem servir sovint l'acabament '-ic' per a la valència més gran (ex: fèrric, valència 3) i '-ós' per a la petita (ex: ferrós, valència 2).",
+        'Òxid no metàl·lic': "Atenció: Els òxids no metàl·lics a l'escola sovint els anomenem ANHÍDRIDS. La paraula anhídrid vol dir 'sense aigua', ja que si els hi afegeixes aigua formen oxoàcids!",
+        'Peròxid': "No et confonguis! Als peròxids veuràs un 'O2' que sembla que es pugui simplificar però NO es toca mai. Ex: H2O2 (aigua oxigenada) no pot ser HO.",
+        'Hidrur metàl·lic': "Aquí l'hidrogen és l'element negatiu (-1). Per això sempre s'escriu a la dreta del metall. (ex: NaH).",
+        'Hidrur no metàl·lic': "Els hidrurs dels grups del nitrogen i carboni tenen noms propis que t'has de saber de memòria: Amoníac (NH3), Metà (CH4), Fosfina (PH3).",
+        'Hidràcid': "Són àcids molt forts sense oxigen. La norma és fàcil: Sempre s'anomenen començant per 'àcid' i acabant en '-HÍDRIC'. Ex: àcid clorhídric (HCl).",
+        'Sal binària': "Regla d'or de les sals: L'element que s'escriu a la dreta sempre acaba en '-UR'. Clorur de sodi, sulfur de ferro, bromur de potassi...",
+        'Sal volàtil': "Són com les sals binàries, però amb dos no metalls. L'element més electronegatiu (el de més a la dreta a la taula periòdica) va al final amb el sufix '-ur'.",
+        'Hidròxid': "És fàcil d'identificar: si veus un OH al final, és un hidròxid! Aquest grup sencer actua com si fos un element de valència -1.",
+        'Oxoàcid': "Mnemotècnia per als àcids: Hipo- ... -ós (1a valència), ... -ós (2a), ... -ic (3a), Per- ... -ic (4a). Si te'n recordes d'això, els dominaràs tots!",
+        'Oxoàcid polihidratat': "Els prefixos de l'aigua: 'Meta' significa 1 molècula d'aigua, 'Piro' (o Di) en són 2, i 'Orto' en són 3. Sovint l'Orto s'omet!",
+        'Oxosal': "El gran truc de les sals: 'El OSO toca el pITO, el mICO rompe el plATO'. És a dir: el que era '-ós' passa a ser '-it', i el que era '-ic' passa a '-at'!",
+        'Sal hidratada': "El punt volador '·' significa que la molècula de sal està envoltada d'aigua. Només cal llegir el número: penta-hidratat (5), deca-hidratat (10)..."
+        };
+
         // --- BASE DE DADES MASSIVA (aprox 200 compostos) ---
         const compoundsDB = [
-        // ÒXIDS METÀL·LICS (S'eliminen els "mono-" pedants per als metalls)
+        // ÒXIDS METÀL·LICS 
         { formula: 'Li2O', names: ['òxid de liti', 'òxid lític'], type: 'Òxid metàl·lic' },
         { formula: 'Na2O', names: ['òxid de sodi', 'òxid sòdic'], type: 'Òxid metàl·lic' },
         { formula: 'K2O', names: ['òxid de potassi', 'òxid potàssic'], type: 'Òxid metàl·lic' },
@@ -122,7 +142,7 @@
         { formula: 'CrO', names: ['òxid de crom(II)', 'òxid cromós'], type: 'Òxid metàl·lic' },
         { formula: 'Cr2O3', names: ['òxid de crom(III)', 'òxid cròmic'], type: 'Òxid metàl·lic' },
         
-        // ÒXIDS NO METÀL·LICS (Anhídrids) - S'eliminen les de Stock innecessàries (ex: òxid de carboni(IV))
+        // ÒXIDS NO METÀL·LICS (Anhídrids) 
         { formula: 'Cl2O', names: ['monòxid de diclor', 'anhídrid hipoclorós'], type: 'Òxid no metàl·lic' },
         { formula: 'Cl2O3', names: ['triòxid de diclor', 'anhídrid clorós'], type: 'Òxid no metàl·lic' },
         { formula: 'Cl2O5', names: ['pentaòxid de diclor', 'anhídrid clòric'], type: 'Òxid no metàl·lic' },
@@ -153,7 +173,7 @@
         { formula: 'CuO2', names: ['peròxid de coure(II)', 'peròxid cúpric'], type: 'Peròxid' },
         { formula: 'ZnO2', names: ['peròxid de zinc', 'peròxid zínquic'], type: 'Peròxid' },
 
-        // HIDRURS METÀL·LICS (S'eliminen els "mono-")
+        // HIDRURS METÀL·LICS 
         { formula: 'LiH', names: ['hidrur de liti', 'hidrur lític'], type: 'Hidrur metàl·lic' },
         { formula: 'NaH', names: ['hidrur de sodi', 'hidrur sòdic'], type: 'Hidrur metàl·lic' },
         { formula: 'KH', names: ['hidrur de potassi', 'hidrur potàssic'], type: 'Hidrur metàl·lic' },
@@ -166,7 +186,7 @@
         { formula: 'PbH4', names: ['hidrur de plom(IV)', 'hidrur plúmbic', 'tetrahidrur de plom'], type: 'Hidrur metàl·lic' },
         { formula: 'AlH3', names: ['hidrur d\'alumini', 'hidrur alumínic'], type: 'Hidrur metàl·lic' },
 
-        // HIDRURS NO METÀL·LICS (S'eliminen els Stock innecessaris ex: hidrur de nitrogen(III))
+        // HIDRURS NO METÀL·LICS
         { formula: 'NH3', names: ['amoníac', 'trihidrur de nitrogen'], type: 'Hidrur no metàl·lic' },
         { formula: 'PH3', names: ['fosfina', 'fosfà'], type: 'Hidrur no metàl·lic' },
         { formula: 'AsH3', names: ['arsina', 'arsà'], type: 'Hidrur no metàl·lic' },
@@ -175,7 +195,7 @@
         { formula: 'SiH4', names: ['silà', 'tetrahidrur de silici'], type: 'Hidrur no metàl·lic' },
         { formula: 'BH3', names: ['borà', 'trihidrur de bor'], type: 'Hidrur no metàl·lic' },
 
-        // HIDRÀCIDS (Només noms tradicionals amb -hídric)
+        // HIDRÀCIDS
         { formula: 'HF', names: ['àcid fluorhídric'], type: 'Hidràcid' },
         { formula: 'HCl', names: ['àcid clorhídric'], type: 'Hidràcid' },
         { formula: 'HBr', names: ['àcid bromhídric'], type: 'Hidràcid' },
@@ -184,7 +204,7 @@
         { formula: 'H2Se', names: ['àcid selenhídric'], type: 'Hidràcid' },
         { formula: 'H2Te', names: ['àcid tel·lurhídric'], type: 'Hidràcid' },
 
-        // SALS BINÀRIES (S'eliminen els "mono-" pedants)
+        // SALS BINÀRIES 
         { formula: 'LiF', names: ['fluorur de liti', 'fluorur lític'], type: 'Sal binària' },
         { formula: 'NaCl', names: ['clorur de sodi', 'clorur sòdic'], type: 'Sal binària' },
         { formula: 'KBr', names: ['bromur de potassi', 'bromur potàssic'], type: 'Sal binària' },
@@ -202,7 +222,7 @@
         { formula: 'AlCl3', names: ['clorur d\'alumini', 'clorur alumínic'], type: 'Sal binària' },
         { formula: 'K2S', names: ['sulfur de potassi', 'sulfur potàssic'], type: 'Sal binària' },
 
-        // SALS VOLÀTILS (No metall + No metall. S'usa sempre sistemàtica)
+        // SALS VOLÀTILS 
         { formula: 'BrF3', names: ['trifluorur de brom'], type: 'Sal volàtil' },
         { formula: 'BrF5', names: ['pentafluorur de brom'], type: 'Sal volàtil' },
         { formula: 'ICl', names: ['monoclorur de iode'], type: 'Sal volàtil' },
@@ -214,7 +234,7 @@
         { formula: 'SF6', names: ['hexafluorur de sofre'], type: 'Sal volàtil' },
         { formula: 'BCl3', names: ['triclorur de bor'], type: 'Sal volàtil' },
 
-        // HIDRÒXIDS (Prioritzant nomenclatura tradicional -ic / -ós i Stock on toca)
+        // HIDRÒXIDS 
         { formula: 'LiOH', names: ['hidròxid lític', 'hidròxid de liti'], type: 'Hidròxid' },
         { formula: 'NaOH', names: ['hidròxid sòdic', 'hidròxid de sodi'], type: 'Hidròxid' },
         { formula: 'KOH', names: ['hidròxid potàssic', 'hidròxid de potassi'], type: 'Hidròxid' },
@@ -231,7 +251,7 @@
         { formula: 'Pb(OH)4', names: ['hidròxid plúmbic', 'hidròxid de plom(IV)'], type: 'Hidròxid' },
         { formula: 'AgOH', names: ['hidròxid argèntic', 'hidròxid de plata'], type: 'Hidròxid' },
 
-        // OXOÀCIDS (Clàssics amb àcid...-ic/-ós)
+        // OXOÀCIDS
         { formula: 'HClO', names: ['àcid hipoclorós'], type: 'Oxoàcid' },
         { formula: 'HClO2', names: ['àcid clorós'], type: 'Oxoàcid' },
         { formula: 'HClO3', names: ['àcid clòric'], type: 'Oxoàcid' },
@@ -287,7 +307,7 @@
         { formula: 'Pb(NO3)2', names: ['nitrat de plom(II)', 'nitrat plumbós'], type: 'Oxosal' },
         { formula: 'Na3PO4', names: ['fosfat de sodi', 'ortofosfat de sodi'], type: 'Oxosal' },
 
-        // OXOÀCIDS POLIHIDRATATS (Meta, Piro, Orto i Deshidratats)
+        // OXOÀCIDS POLIHIDRATATS
         { formula: 'HPO3', names: ['àcid metafosfòric'], type: 'Oxoàcid polihidratat' },
         { formula: 'H4P2O7', names: ['àcid pirofosfòric', 'àcid difosfòric'], type: 'Oxoàcid polihidratat' },
         { formula: 'HBO2', names: ['àcid metabòric'], type: 'Oxoàcid polihidratat' },
@@ -372,27 +392,49 @@
         const [combo, setCombo] = useState(1);
         const [bestScore, setBestScore] = useState(0);
         
+        const [attempts, setAttempts] = useState(0); // NOU: Comptador d'intents per al Checkpoint
+        
         const [selectedAnswer, setSelectedAnswer] = useState(null);
         const [isAnimating, setIsAnimating] = useState(false);
         const [shakeEfx, setShakeEfx] = useState(false);
         const [glowEfx, setGlowEfx] = useState(false);
         const [showExplanation, setShowExplanation] = useState(false);
+        
+        const [showTip, setShowTip] = useState(false); // NOU: Estat per la modal de Consell
+        const [currentTipType, setCurrentTipType] = useState(null);
 
         const startGame = () => {
             setScore(0);
             setLives(3);
             setCombo(1);
+            setAttempts(0);
             setCurrentQuiz(generateQuiz());
             setShowExplanation(false);
+            setShowTip(false);
             setGameState('playing');
         };
 
+        const proceedToNextQuestion = (currentAttemptCount) => {
+            setSelectedAnswer(null);
+            setIsAnimating(false);
+            
+            // Si hem arribat a un múltiple de 5 intents, mostrem la Modal de Consell
+            if (currentAttemptCount % 5 === 0 && currentAttemptCount > 0) {
+                setCurrentTipType(currentQuiz.compound.type);
+                setShowTip(true);
+            } else {
+                setCurrentQuiz(generateQuiz());
+            }
+        };
+
         const handleAnswer = (answer) => {
-            if (isAnimating || showExplanation) return;
+            if (isAnimating || showExplanation || showTip) return;
             setIsAnimating(true);
             setSelectedAnswer(answer);
 
             const isCorrect = answer === currentQuiz.correctAnswer;
+            const newAttempts = attempts + 1;
+            setAttempts(newAttempts);
 
             if (isCorrect) {
             setGlowEfx(true);
@@ -402,9 +444,7 @@
             
             setTimeout(() => {
                 setGlowEfx(false);
-                setCurrentQuiz(generateQuiz());
-                setSelectedAnswer(null);
-                setIsAnimating(false);
+                proceedToNextQuestion(newAttempts);
             }, 800);
 
             } else {
@@ -422,15 +462,18 @@
             const newLives = lives - 1;
             setLives(newLives);
             setShowExplanation(false);
-            setSelectedAnswer(null);
-            setIsAnimating(false);
 
             if (newLives <= 0) {
-            if (score > bestScore) setBestScore(score);
-            setGameState('gameover');
+                if (score > bestScore) setBestScore(score);
+                setGameState('gameover');
             } else {
-            setCurrentQuiz(generateQuiz());
+                proceedToNextQuestion(attempts);
             }
+        };
+
+        const handleCloseTip = () => {
+            setShowTip(false);
+            setCurrentQuiz(generateQuiz());
         };
 
         if (gameState === 'menu') {
@@ -509,6 +552,7 @@
         return (
             <div className={`min-h-screen bg-[#0B0F19] text-white flex flex-col font-sans overflow-hidden transition-colors duration-300 ${shakeEfx ? 'animate-shake' : ''} ${glowEfx ? 'bg-emerald-950/40' : ''}`}>
             
+            {/* OVERLAY D'EXPLICACIÓ AL FALLAR */}
             {showExplanation && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300">
                 <div className="bg-[#13192B] border border-rose-500/50 p-6 md:p-8 rounded-3xl max-w-lg w-full shadow-[0_0_60px_rgba(225,29,72,0.3)] transform transition-all">
@@ -554,6 +598,42 @@
                 </div>
             )}
 
+            {/* NOU: OVERLAY DE CONSELL CADA 5 INTENTS */}
+            {showTip && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300">
+                <div className="bg-[#0B1221] border border-cyan-500/50 p-6 md:p-8 rounded-3xl max-w-lg w-full shadow-[0_0_60px_rgba(6,182,212,0.3)] transform transition-all relative overflow-hidden">
+                    
+                    <div className="absolute top-[-50px] right-[-50px] w-[150px] h-[150px] bg-cyan-600/20 rounded-full blur-[50px]"></div>
+
+                    <div className="flex items-center gap-3 mb-6 relative z-10">
+                    <div className="bg-cyan-500/20 p-3 rounded-full border border-cyan-500/30">
+                        <Lightbulb className="text-cyan-400" size={32} />
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-black text-white">Checkpoint Científic</h2>
+                        <p className="text-cyan-300/70 text-sm font-bold uppercase tracking-widest">{attempts} compostos analitzats</p>
+                    </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-blue-900/40 to-cyan-900/20 rounded-2xl p-6 mb-8 border border-cyan-500/30 relative z-10">
+                    <h3 className="font-bold text-cyan-300 text-lg uppercase tracking-wide mb-3 border-b border-cyan-500/30 pb-2">
+                        💡 Família: {currentTipType}
+                    </h3>
+                    <p className="text-blue-100 leading-relaxed text-xl font-medium">
+                        {tipsDB[currentTipType] || "Recorda revisar bé les valències abans de formular!"}
+                    </p>
+                    </div>
+
+                    <button 
+                    onClick={handleCloseTip}
+                    className="relative z-10 w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xl py-4 rounded-xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(6,182,212,0.3)] transition-transform active:scale-95"
+                    >
+                    Continuar Investigant <ArrowRight size={24} />
+                    </button>
+                </div>
+                </div>
+            )}
+
             <div className="flex justify-between items-center p-6 md:p-8 z-10 bg-gradient-to-b from-[#0B0F19] to-transparent">
                 <div className="flex gap-2">
                 {[...Array(3)].map((_, i) => (
@@ -575,7 +655,7 @@
                 </div>
             </div>
 
-            <div className={`flex-1 flex flex-col items-center justify-center p-6 z-10 transition-opacity duration-300 ${showExplanation ? 'opacity-30 blur-sm pointer-events-none' : 'opacity-100'}`}>
+            <div className={`flex-1 flex flex-col items-center justify-center p-6 z-10 transition-opacity duration-300 ${(showExplanation || showTip) ? 'opacity-30 blur-sm pointer-events-none' : 'opacity-100'}`}>
                 <div className="text-cyan-300/60 font-bold tracking-widest uppercase mb-4 text-sm md:text-base flex items-center gap-2">
                 {currentQuiz.compound.type}
                 </div>
@@ -591,7 +671,7 @@
                 </div>
             </div>
 
-            <div className={`p-4 md:p-8 z-10 w-full max-w-4xl mx-auto pb-12 transition-opacity duration-300 ${showExplanation ? 'opacity-30 blur-sm pointer-events-none' : 'opacity-100'}`}>
+            <div className={`p-4 md:p-8 z-10 w-full max-w-4xl mx-auto pb-12 transition-opacity duration-300 ${(showExplanation || showTip) ? 'opacity-30 blur-sm pointer-events-none' : 'opacity-100'}`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {currentQuiz.options.map((option, index) => {
                     
@@ -612,7 +692,7 @@
                     <button
                         key={index}
                         onClick={() => handleAnswer(option)}
-                        disabled={isAnimating || showExplanation}
+                        disabled={isAnimating || showExplanation || showTip}
                         className={`relative w-full p-6 md:p-8 rounded-2xl border-2 backdrop-blur-md transition-all duration-300 text-xl md:text-2xl font-bold flex items-center justify-center text-center overflow-hidden active:scale-95 ${btnStyle}`}
                     >
                         {selectedAnswer === null && (
