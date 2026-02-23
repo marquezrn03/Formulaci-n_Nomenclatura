@@ -102,7 +102,8 @@
         'Oxoàcid polihidratat': "S'obtenen sumant diferents molècules d'aigua a l'anhídrid. S'usen prefixos per indicar el grau d'hidratació: meta- (1 H2O), piro- o di- (2 H2O), orto- (3 H2O).",
         'Oxosal': "Deriven dels oxoàcids en substituir els hidrògens per un metall. Els sufixos de l'àcid canvien: '-ós' passa a '-it', i '-ic' passa a '-at'.",
         'Sal àcida': "Són sals que encara conserven algun hidrogen de l'àcid original. S'anomenen posant el prefix 'hidrogen-' o 'dihidrogen-' davant del nom de l'anió.",
-        'Sal hidratada': "Sals que contenen molècules d'aigua de cristal·lització en la seva estructura. S'indica amb un prefix numeral grec seguit de la paraula '-hidratat'."
+        'Sal hidratada': "Sals que contenen molècules d'aigua de cristal·lització en la seva estructura. S'indica amb un prefix numeral grec seguit de la paraula '-hidratat'.",
+        'Complex inorgànic': "Són compostos formats per un àtom central (sovint metall de transició) envoltat de molècules o ions anomenats lligands."
         };
 
         const advancedTips = [
@@ -117,7 +118,8 @@
             { title: "Sals Hidratades", content: "El punt volat '·' indica aigua atrapada al cristall de la sal (ex: CuSO4·5H2O). Es llegeix afegint un prefix numeral grec més la paraula 'hidratat': pentahidratat, dihidratat..." },
             { title: "Hidrurs amb noms propis", content: "Alguns hidrurs de no-metalls tenen noms tradicionals reconeguts: NH3 (amoníac), CH4 (metà), PH3 (fosfina) i SiH4 (silà). És important memoritzar-los." },
             { title: "Regla de Stock", content: "A la nomenclatura de Stock, els nombres romans indiquen la valència del metall. Però si el metall només té UNA valència possible (com Na, Ca, Zn, Al), NO s'escriu el nombre romà." },
-            { title: "Hidròxids (Bases)", content: "S'identifiquen ràpidament: tenen el grup (OH) al final, que actua globalment amb valència -1. El metall manté el seu nom comú (ex: hidròxid de calci)." }
+            { title: "Hidròxids (Bases)", content: "S'identifiquen ràpidament: tenen el grup (OH) al final, que actua globalment amb valència -1. El metall manté el seu nom comú (ex: hidròxid de calci)." },
+            { title: "Complexos Inorgànics", content: "Aquests compostos tenen un metall central envoltat de 'lligands' sovint entre claudàtors [ ]. Ex: K4[Fe(CN)6] és el ferrocianur de potassi, molt usat al laboratori!" }
         ];
 
         // --- BASE DE DADES (aprox 200 compostos) ---
@@ -359,7 +361,75 @@
         { formula: 'MgCl2·6H2O', names: ['clorur de magnesi hexahidratat'], type: 'Sal hidratada' },
         { formula: 'CoCl2·6H2O', names: ['clorur de cobalt(II) hexahidratat', 'clorur cobaltós hexahidratat'], type: 'Sal hidratada' },
         { formula: 'FeCl3·6H2O', names: ['clorur de ferro(III) hexahidratat', 'clorur fèrric hexahidratat'], type: 'Sal hidratada' },
-        { formula: 'MgSO3·7H2O', names: ['sulfit de magnesi heptahidratat'], type: 'Sal hidratada' }
+        { formula: 'MgSO3·7H2O', names: ['sulfit de magnesi heptahidratat'], type: 'Sal hidratada' },
+
+        // --- ADDICIONS RECENTMENT INCORPORADES ---
+        // Elements addicionals
+        { formula: 'N2', names: ['nitrogen'], type: 'Substància simple' },
+        { formula: 'Cl2', names: ['clor'], type: 'Substància simple' },
+        { formula: 'S8', names: ['sofre', 'sulfur'], type: 'Substància simple' },
+        { formula: 'P4', names: ['fòsfor blanc', 'fòsfor'], type: 'Substància simple' },
+        { formula: 'He', names: ['heli'], type: 'Substància simple' },
+        { formula: 'Ne', names: ['neó'], type: 'Substància simple' },
+        { formula: 'Ar', names: ['argó'], type: 'Substància simple' },
+        { formula: 'Kr', names: ['criptó'], type: 'Substància simple' },
+
+        // Òxids metàl·lics nous
+        { formula: 'CoO', names: ['òxid de cobalt(II)', 'òxid cobaltós'], type: 'Òxid metàl·lic' },
+        { formula: 'Co3O4', names: ['tricòxid de dicobalt', 'òxid de cobalt mixt'], type: 'Òxid metàl·lic' },
+        { formula: 'V2O5', names: ['pentòxid de vanadi', 'òxid de vanadi(V)'], type: 'Òxid metàl·lic' },
+        { formula: 'TiO2', names: ['diòxid de titani'], type: 'Òxid metàl·lic' },
+        { formula: 'CeO2', names: ['diòxid de ceri'], type: 'Òxid metàl·lic' },
+        { formula: 'SnO2', names: ['diòxid d\'estany'], type: 'Òxid metàl·lic' },
+        { formula: 'Sb2O3', names: ['triòxid d\'estib'], type: 'Òxid metàl·lic' },
+        { formula: 'MnO', names: ['òxid de manganès(II)'], type: 'Òxid metàl·lic' },
+        { formula: 'Fe3O4', names: ['magnetita', 'òxid de ferro mixt'], type: 'Òxid metàl·lic' },
+        { formula: 'CrO3', names: ['triòxid de crom', 'anhídrid cròmic'], type: 'Òxid metàl·lic' },
+
+        // Òxids no metàl·lics nous
+        { formula: 'NO', names: ['monòxid de nitrogen', 'òxid nítric'], type: 'Òxid no metàl·lic' },
+        { formula: 'NO2', names: ['diòxid de nitrogen'], type: 'Òxid no metàl·lic' },
+        { formula: 'N2O', names: ['òxid de dinitrogen', 'òxid nitros'], type: 'Òxid no metàl·lic' },
+        { formula: 'P4O10', names: ['decaòxid de tetrafòsfor', 'anhídrid fosfòric'], type: 'Òxid no metàl·lic' },
+        { formula: 'SiO', names: ['monòxid de silici'], type: 'Òxid no metàl·lic' },
+
+        // Hidrurs inorgànics nous
+        { formula: 'LiAlH4', names: ['hidrur d\'alumini i liti'], type: 'Hidrur metàl·lic' },
+        { formula: 'NaBH4', names: ['borohidrur de sodi'], type: 'Hidrur metàl·lic' },
+
+        // Sals binàries i reactius nous
+        { formula: 'KCl', names: ['clorur de potassi'], type: 'Sal binària' },
+        { formula: 'CaCl2', names: ['clorur de calci'], type: 'Sal binària' },
+        { formula: 'MgCl2', names: ['clorur de magnesi'], type: 'Sal binària' },
+        { formula: 'NH4Cl', names: ['clorur d\'amoni'], type: 'Sal binària' },
+        { formula: 'NaF', names: ['fluorur de sodi'], type: 'Sal binària' },
+        { formula: 'Na2S', names: ['sulfur de sodi'], type: 'Sal binària' },
+        { formula: 'SnCl2', names: ['clorur d\'estany(II)', 'clorur estannós'], type: 'Sal binària' },
+
+        // Oxosals (i persals) noves
+        { formula: 'NaNO3', names: ['nitrat de sodi'], type: 'Oxosal' },
+        { formula: 'Na2S2O8', names: ['peroxodisulfat de sodi', 'persulfat de sodi'], type: 'Oxosal' },
+        { formula: 'K2S2O8', names: ['peroxodisulfat de potassi'], type: 'Oxosal' },
+        { formula: 'Na2S2O3', names: ['tiosulfat de sodi'], type: 'Oxosal' },
+        { formula: 'K2S2O3', names: ['tiosulfat de potassi'], type: 'Oxosal' },
+        { formula: 'Na2SiO3', names: ['silicat de sodi'], type: 'Oxosal' },
+
+        // Sals àcides noves
+        { formula: 'NaHCO3', names: ['bicarbonat de sodi', 'hidrogencarbonat de sodi'], type: 'Sal àcida' },
+
+        // Complexos inorgànics
+        { formula: 'K4[Fe(CN)6]', names: ['ferrocianur de potassi', 'hexacianoferrat(II) de potassi'], type: 'Complex inorgànic' },
+        { formula: 'K3[Fe(CN)6]', names: ['ferricianur de potassi', 'hexacianoferrat(III) de potassi'], type: 'Complex inorgànic' },
+
+        // Sals volàtils / reactius gasosos nous
+        { formula: 'SOCl2', names: ['clorur de tionil'], type: 'Sal volàtil' },
+        { formula: 'COCl2', names: ['clorur de formil', 'fosgen'], type: 'Sal volàtil' },
+        { formula: 'NOCl', names: ['clorur de nitrosil'], type: 'Sal volàtil' },
+
+        // Sals hidratades noves
+        { formula: 'FeSO4·7H2O', names: ['sulfat de ferro(II) heptahidratat'], type: 'Sal hidratada' },
+        { formula: 'Na2SiO3·xH2O', names: ['silicat de sodi hidratat'], type: 'Sal hidratada' },
+        { formula: 'Na2S2O3·5H2O', names: ['tiosulfat de sodi pentahidratat'], type: 'Sal hidratada' }
         ];
 
         // Format de Fórmules Químiques
