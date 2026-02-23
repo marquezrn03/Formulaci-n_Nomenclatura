@@ -5,18 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alquimista Quàntic - Joc de Química</title>
     
-    <!-- Tailwind CSS (CDN per estils ràpids) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Llibreries de React -->
+    <!-- React Libraries -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Babel (per transpilar el codi JSX directament al navegador) -->
+    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        /* Animacions personalitzades per als efectes del joc */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             20%, 60% { transform: translateX(-10px); }
@@ -29,13 +28,14 @@
         .animate-shake {
             animation: shake 0.4s ease-in-out;
         }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
     </style>
 </head>
 <body class="bg-[#0B0F19] text-white">
-    <!-- El contenidor on es muntarà l'aplicació React -->
     <div id="root"></div>
 
-    <!-- Script principal de l'aplicació -->
     <script type="text/babel">
         const { useState, useEffect } = React;
 
@@ -79,9 +79,14 @@
         const Lightbulb = ({ size = 24, className = "" }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
         );
+        const ClockIcon = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        );
+        const Activity = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        );
 
-
-        // --- DICCIONARI D'EXPLICACIONS PER FALLOS (Teòriques) ---
+        // --- DICCIONARIS ---
         const explanationsDB = {
         'Substància simple': "Formada per àtoms d'un sol element. Tingues en compte que alguns elements (gasos i halògens) es presenten en forma diatòmica (ex: O2, Cl2).",
         'Òxid metàl·lic': "L'oxigen actua amb valència -2. S'intercanvia amb la valència del metall i se simplifiquen els subíndexs si són parells.",
@@ -100,7 +105,6 @@
         'Sal hidratada': "Sals que contenen molècules d'aigua de cristal·lització en la seva estructura. S'indica amb un prefix numeral grec seguit de la paraula '-hidratat'."
         };
 
-        // --- CONSELLS AVANÇATS (Aleatoris i sense repetició per a conceptes difícils) ---
         const advancedTips = [
             { title: "Substàncies Simples (Gasos)", content: "Els gasos com l'oxigen, hidrogen, nitrogen o els halògens (fluor, iode...) viuen en parella! Si et demanen la fórmula del gas oxigen, sempre és O2 i no pas O. L'excepció famosa és l'ozó (O3)." },
             { title: "Oxosals (Canvi de sufixos)", content: "Regla fonamental: Els àcids que acaben en '-ós' formen sals acabades en '-it'. Els àcids que acaben en '-ic' formen sals acabades en '-at'." },
@@ -116,9 +120,8 @@
             { title: "Hidròxids (Bases)", content: "S'identifiquen ràpidament: tenen el grup (OH) al final, que actua globalment amb valència -1. El metall manté el seu nom comú (ex: hidròxid de calci)." }
         ];
 
-        // --- BASE DE DADES MASSIVA (aprox 200 compostos) ---
+        // --- BASE DE DADES (aprox 200 compostos) ---
         const compoundsDB = [
-        // SUBSTÀNCIES SIMPLES
         { formula: 'Ca', names: ['calci'], type: 'Substància simple' },
         { formula: 'O3', names: ['ozó'], type: 'Substància simple' },
         { formula: 'F2', names: ['fluor'], type: 'Substància simple' },
@@ -128,7 +131,6 @@
         { formula: 'H2', names: ['hidrogen'], type: 'Substància simple' },
         { formula: 'Xe', names: ['xenó'], type: 'Substància simple' },
 
-        // ÒXIDS METÀL·LICS 
         { formula: 'Li2O', names: ['òxid de liti'], type: 'Òxid metàl·lic' },
         { formula: 'Na2O', names: ['òxid de sodi'], type: 'Òxid metàl·lic' },
         { formula: 'K2O', names: ['òxid de potassi'], type: 'Òxid metàl·lic' },
@@ -157,7 +159,6 @@
         { formula: 'MnO2', names: ['òxid de manganès(IV)', 'diòxid de manganès'], type: 'Òxid metàl·lic' },
         { formula: 'Mn2O7', names: ['òxid de manganès(VII)', 'anhídrid permangànic'], type: 'Òxid metàl·lic' },
         
-        // ÒXIDS NO METÀL·LICS (Anhídrids) 
         { formula: 'Cl2O', names: ['monòxid de diclor', 'anhídrid hipoclorós'], type: 'Òxid no metàl·lic' },
         { formula: 'Cl2O3', names: ['triòxid de diclor', 'anhídrid clorós'], type: 'Òxid no metàl·lic' },
         { formula: 'Cl2O5', names: ['pentaòxid de diclor', 'anhídrid clòric'], type: 'Òxid no metàl·lic' },
@@ -177,10 +178,9 @@
         { formula: 'SiO2', names: ['diòxid de silici', 'anhídrid silícic'], type: 'Òxid no metàl·lic' },
         { formula: 'P2O3', names: ['triòxid de difòsfor', 'anhídrid fosforós'], type: 'Òxid no metàl·lic' },
         { formula: 'P2O5', names: ['pentaòxid de difòsfor', 'anhídrid fosfòric'], type: 'Òxid no metàl·lic' },
-        { formula: 'I2O', names: ['monòxid de diiode', 'anhídrid hipoiodós'], type: 'Òxid no metàl·lic' },
+        { formula: 'I2O', names: ['anhídrid hipoiodós', 'monòxid de diiode'], type: 'Òxid no metàl·lic' },
         { formula: 'B2O3', names: ['triòxid de dibor', 'anhídrid bòric'], type: 'Òxid no metàl·lic' },
 
-        // PERÒXIDS (Neteja de noms col·loquials com "aigua oxigenada")
         { formula: 'H2O2', names: ['peròxid d\'hidrogen'], type: 'Peròxid' },
         { formula: 'Na2O2', names: ['peròxid de sodi'], type: 'Peròxid' },
         { formula: 'K2O2', names: ['peròxid de potassi'], type: 'Peròxid' },
@@ -192,7 +192,6 @@
         { formula: 'Cu2O2', names: ['peròxid de coure(I)'], type: 'Peròxid' },
         { formula: 'PbO4', names: ['peròxid de plom(IV)', 'peròxid plúmbic'], type: 'Peròxid' },
 
-        // HIDRURS METÀL·LICS 
         { formula: 'LiH', names: ['hidrur de liti'], type: 'Hidrur metàl·lic' },
         { formula: 'NaH', names: ['hidrur de sodi'], type: 'Hidrur metàl·lic' },
         { formula: 'KH', names: ['hidrur de potassi'], type: 'Hidrur metàl·lic' },
@@ -206,7 +205,6 @@
         { formula: 'AlH3', names: ['hidrur d\'alumini'], type: 'Hidrur metàl·lic' },
         { formula: 'Hg2H2', names: ['hidrur de mercuri(I)'], type: 'Hidrur metàl·lic' },
 
-        // HIDRURS NO METÀL·LICS (Eliminats els "tetrahidrur de..." en favor dels noms reconeguts IUPAC)
         { formula: 'NH3', names: ['amoníac'], type: 'Hidrur no metàl·lic' },
         { formula: 'PH3', names: ['fosfà', 'fosfina'], type: 'Hidrur no metàl·lic' },
         { formula: 'AsH3', names: ['arsà', 'arsina'], type: 'Hidrur no metàl·lic' },
@@ -215,7 +213,6 @@
         { formula: 'SiH4', names: ['silà'], type: 'Hidrur no metàl·lic' },
         { formula: 'BH3', names: ['borà'], type: 'Hidrur no metàl·lic' },
 
-        // HIDRÀCIDS
         { formula: 'HF', names: ['àcid fluorhídric'], type: 'Hidràcid' },
         { formula: 'HCl', names: ['àcid clorhídric'], type: 'Hidràcid' },
         { formula: 'HBr', names: ['àcid bromhídric'], type: 'Hidràcid' },
@@ -225,7 +222,6 @@
         { formula: 'H2Te', names: ['àcid tel·lurhídric'], type: 'Hidràcid' },
         { formula: 'HCN', names: ['àcid cianhídric'], type: 'Hidràcid' },
 
-        // SALS BINÀRIES 
         { formula: 'LiF', names: ['fluorur de liti'], type: 'Sal binària' },
         { formula: 'NaCl', names: ['clorur de sodi'], type: 'Sal binària' },
         { formula: 'KBr', names: ['bromur de potassi'], type: 'Sal binària' },
@@ -252,7 +248,6 @@
         { formula: 'LiI', names: ['iodur de liti'], type: 'Sal binària' },
         { formula: 'ZnBr2', names: ['bromur de zinc'], type: 'Sal binària' },
 
-        // SALS VOLÀTILS 
         { formula: 'BrF3', names: ['trifluorur de brom'], type: 'Sal volàtil' },
         { formula: 'BrF5', names: ['pentafluorur de brom'], type: 'Sal volàtil' },
         { formula: 'ICl', names: ['monoclorur de iode'], type: 'Sal volàtil' },
@@ -264,7 +259,6 @@
         { formula: 'SF6', names: ['hexafluorur de sofre'], type: 'Sal volàtil' },
         { formula: 'BCl3', names: ['triclorur de bor'], type: 'Sal volàtil' },
 
-        // HIDRÒXIDS 
         { formula: 'LiOH', names: ['hidròxid de liti'], type: 'Hidròxid' },
         { formula: 'NaOH', names: ['hidròxid de sodi'], type: 'Hidròxid' },
         { formula: 'KOH', names: ['hidròxid de potassi'], type: 'Hidròxid' },
@@ -286,7 +280,6 @@
         { formula: 'Hg(OH)2', names: ['hidròxid de mercuri(II)'], type: 'Hidròxid' },
         { formula: 'Sr(OH)2', names: ['hidròxid d\'estronci'], type: 'Hidròxid' },
 
-        // OXOÀCIDS
         { formula: 'HClO', names: ['àcid hipoclorós'], type: 'Oxoàcid' },
         { formula: 'HClO2', names: ['àcid clorós'], type: 'Oxoàcid' },
         { formula: 'HClO3', names: ['àcid clòric'], type: 'Oxoàcid' },
@@ -315,7 +308,6 @@
         { formula: 'H2Cr2O7', names: ['àcid dicròmic'], type: 'Oxoàcid' },
         { formula: 'H2MnO4', names: ['àcid mangànic'], type: 'Oxoàcid' },
 
-        // OXOSALS
         { formula: 'NaClO', names: ['hipoclorit de sodi'], type: 'Oxosal' },
         { formula: 'NaClO2', names: ['clorit de sodi'], type: 'Oxosal' },
         { formula: 'NaClO3', names: ['clorat de sodi'], type: 'Oxosal' },
@@ -349,13 +341,11 @@
         { formula: 'CaCr2O7', names: ['dicromat de calci'], type: 'Oxosal' },
         { formula: 'NH4NO2', names: ['nitrit d\'amoni'], type: 'Oxosal' },
 
-        // SALS ÀCIDES (Oxigenades i No oxigenades)
         { formula: 'Cu(HS)2', names: ['hidrogensulfur de coure(II)'], type: 'Sal àcida' },
         { formula: 'AgHSe', names: ['hidrogenseleniur de plata', 'hidrogenseleniur d\'argent'], type: 'Sal àcida' },
         { formula: 'KH2PO4', names: ['dihidrogenfosfat de potassi'], type: 'Sal àcida' },
         { formula: 'KHSO3', names: ['hidrogensulfit de potassi'], type: 'Sal àcida' },
 
-        // OXOÀCIDS POLIHIDRATATS
         { formula: 'HPO3', names: ['àcid metafosfòric'], type: 'Oxoàcid polihidratat' },
         { formula: 'H4P2O7', names: ['àcid pirofosfòric', 'àcid difosfòric'], type: 'Oxoàcid polihidratat' },
         { formula: 'HBO2', names: ['àcid metabòric'], type: 'Oxoàcid polihidratat' },
@@ -363,7 +353,6 @@
         { formula: 'H2S2O7', names: ['àcid pirosulfúric', 'àcid disulfúric'], type: 'Oxoàcid polihidratat' },
         { formula: 'H2SiO3', names: ['àcid metasilícic'], type: 'Oxoàcid polihidratat' },
 
-        // SALS HIDRATADES
         { formula: 'CuSO4·5H2O', names: ['sulfat de coure(II) pentahidratat', 'sulfat cúpric pentahidratat'], type: 'Sal hidratada' },
         { formula: 'CaSO4·2H2O', names: ['sulfat de calci dihidratat'], type: 'Sal hidratada' },
         { formula: 'Na2CO3·10H2O', names: ['carbonat de sodi decahidratat'], type: 'Sal hidratada' },
@@ -373,405 +362,439 @@
         { formula: 'MgSO3·7H2O', names: ['sulfit de magnesi heptahidratat'], type: 'Sal hidratada' }
         ];
 
-        // Utilitat visual per renderitzar fórmules amb subíndexs
+        // Format de Fórmules Químiques
         const FormatFormula = ({ formula, large = false }) => {
-        const parts = formula.split(/(\d+)/);
-        return (
-            <span className={`font-black tracking-widest ${large ? 'text-5xl md:text-7xl' : 'text-xl'} drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]`}>
-            {parts.map((part, index) => {
-                if (!isNaN(part) && part !== '') {
-                // Detectar si el nombre ve just després d'un punt volat '·' (coeficient de molècula d'aigua)
-                const prevPart = index > 0 ? parts[index-1] : '';
-                if (prevPart.endsWith('·') || prevPart.endsWith('· ')) {
+            const parts = formula.split(/(\d+)/);
+            return (
+                <span className={`font-black tracking-widest ${large ? 'text-5xl md:text-7xl' : 'text-xl'} drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]`}>
+                {parts.map((part, index) => {
+                    if (!isNaN(part) && part !== '') {
+                        const prevPart = index > 0 ? parts[index-1] : '';
+                        if (prevPart.endsWith('·') || prevPart.endsWith('· ')) {
+                            return <span key={index}>{part}</span>;
+                        }
+                        return <sub key={index} className={`${large ? 'text-3xl md:text-4xl' : 'text-sm'} font-bold text-cyan-300 relative top-2`}>{part}</sub>;
+                    }
                     return <span key={index}>{part}</span>;
-                }
-                return <sub key={index} className={`${large ? 'text-3xl md:text-4xl' : 'text-sm'} font-bold text-cyan-300 relative top-2`}>{part}</sub>;
-                }
-                return <span key={index}>{part}</span>;
-            })}
-            </span>
-        );
+                })}
+                </span>
+            );
         };
 
-        // Generador de preguntes (opció múltiple)
         const generateQuiz = () => {
-        const targetIndex = Math.floor(Math.random() * compoundsDB.length);
-        const target = compoundsDB[targetIndex];
-        
-        const questionType = Math.random() > 0.5 ? 'formula_to_name' : 'name_to_formula';
-        const options = new Set();
-        
-        let correctOptionStr = '';
-        if (questionType === 'formula_to_name') {
-            correctOptionStr = target.names[Math.floor(Math.random() * target.names.length)];
-        } else {
-            correctOptionStr = target.formula;
-        }
-        options.add(correctOptionStr);
+            const targetIndex = Math.floor(Math.random() * compoundsDB.length);
+            const target = compoundsDB[targetIndex];
+            const questionType = Math.random() > 0.5 ? 'formula_to_name' : 'name_to_formula';
+            const options = new Set();
+            
+            let correctOptionStr = questionType === 'formula_to_name' 
+                ? target.names[Math.floor(Math.random() * target.names.length)] 
+                : target.formula;
+            options.add(correctOptionStr);
 
-        while(options.size < 4) {
-            const randomCompound = compoundsDB[Math.floor(Math.random() * compoundsDB.length)];
-            if (randomCompound.formula !== target.formula) {
-            if (questionType === 'formula_to_name') {
-                const randomName = randomCompound.names[Math.floor(Math.random() * randomCompound.names.length)];
-                options.add(randomName);
-            } else {
-                options.add(randomCompound.formula);
+            while(options.size < 4) {
+                const randomCompound = compoundsDB[Math.floor(Math.random() * compoundsDB.length)];
+                if (randomCompound.formula !== target.formula) {
+                    if (questionType === 'formula_to_name') {
+                        options.add(randomCompound.names[Math.floor(Math.random() * randomCompound.names.length)]);
+                    } else {
+                        options.add(randomCompound.formula);
+                    }
+                }
             }
-            }
-        }
 
-        const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
-
-        return {
-            compound: target,
-            type: questionType,
-            questionText: questionType === 'formula_to_name' 
-            ? target.formula 
-            : target.names[Math.floor(Math.random() * target.names.length)], 
-            correctAnswer: correctOptionStr,
-            options: shuffledOptions
+            return {
+                compound: target,
+                type: questionType,
+                questionText: questionType === 'formula_to_name' ? target.formula : target.names[Math.floor(Math.random() * target.names.length)], 
+                correctAnswer: correctOptionStr,
+                options: Array.from(options).sort(() => Math.random() - 0.5)
+            };
         };
+
+        const formatTime = (seconds) => {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
         };
 
         function GameApp() {
-        const [gameState, setGameState] = useState('menu');
-        const [currentQuiz, setCurrentQuiz] = useState(null);
-        const [score, setScore] = useState(0);
-        const [lives, setLives] = useState(3);
-        const [combo, setCombo] = useState(1);
-        const [bestScore, setBestScore] = useState(0);
-        
-        const [attempts, setAttempts] = useState(0); 
-        const [tipQueue, setTipQueue] = useState([]); // Cua de consells aleatoris
-        
-        const [selectedAnswer, setSelectedAnswer] = useState(null);
-        const [isAnimating, setIsAnimating] = useState(false);
-        const [shakeEfx, setShakeEfx] = useState(false);
-        const [glowEfx, setGlowEfx] = useState(false);
-        const [showExplanation, setShowExplanation] = useState(false);
-        
-        const [showTip, setShowTip] = useState(false); 
-        const [currentTip, setCurrentTip] = useState(null); // Consell actual a mostrar
+            const [gameState, setGameState] = useState('menu');
+            const [currentQuiz, setCurrentQuiz] = useState(null);
+            const [score, setScore] = useState(0);
+            const [lives, setLives] = useState(3);
+            const [combo, setCombo] = useState(1);
+            const [bestScore, setBestScore] = useState(0);
+            const [attempts, setAttempts] = useState(0); 
+            
+            // Estats del Cronòmetre i Temps
+            const [qStartTime, setQStartTime] = useState(0);
+            const [questionTimes, setQuestionTimes] = useState([]);
+            const [hudTime, setHudTime] = useState(0);
 
-        const startGame = () => {
-            setScore(0);
-            setLives(3);
-            setCombo(1);
-            setAttempts(0);
+            const [tipQueue, setTipQueue] = useState([]);
+            const [selectedAnswer, setSelectedAnswer] = useState(null);
+            const [isAnimating, setIsAnimating] = useState(false);
+            const [shakeEfx, setShakeEfx] = useState(false);
+            const [glowEfx, setGlowEfx] = useState(false);
             
-            // Barregem els consells en començar perquè siguin aleatoris i no es repeteixin
-            const shuffledTips = [...advancedTips].sort(() => Math.random() - 0.5);
-            setTipQueue(shuffledTips);
-            
-            setCurrentQuiz(generateQuiz());
-            setShowExplanation(false);
-            setShowTip(false);
-            setGameState('playing');
-        };
+            // Modals
+            const [showExplanation, setShowExplanation] = useState(false);
+            const [showTip, setShowTip] = useState(false); 
+            const [showSpeedStat, setShowSpeedStat] = useState(false);
+            const [currentTip, setCurrentTip] = useState(null);
 
-        const proceedToNextQuestion = (currentAttemptCount) => {
-            setSelectedAnswer(null);
-            setIsAnimating(false);
-            
-            // Cada 5 intents, si encara queden consells a la cua, en mostrem un
-            if (currentAttemptCount % 5 === 0 && currentAttemptCount > 0 && tipQueue.length > 0) {
-                const nextTip = tipQueue[0];
-                setTipQueue(tipQueue.slice(1)); // Eliminem el consell de la cua (evita repeticions)
-                setCurrentTip(nextTip);
-                setShowTip(true);
-            } else {
+            // Rellotge HUD
+            useEffect(() => {
+                let interval;
+                if (gameState === 'playing' && !showExplanation && !showTip && !showSpeedStat && !isAnimating) {
+                    interval = setInterval(() => setHudTime(t => t + 1), 1000);
+                }
+                return () => clearInterval(interval);
+            }, [gameState, showExplanation, showTip, showSpeedStat, isAnimating]);
+
+            const startGame = () => {
+                setScore(0);
+                setLives(3);
+                setCombo(1);
+                setAttempts(0);
+                setQuestionTimes([]);
+                setHudTime(0);
+                
+                const shuffledTips = [...advancedTips].sort(() => Math.random() - 0.5);
+                setTipQueue(shuffledTips);
+                
                 setCurrentQuiz(generateQuiz());
+                setShowExplanation(false);
+                setShowTip(false);
+                setShowSpeedStat(false);
+                setGameState('playing');
+                setQStartTime(Date.now());
+            };
+
+            const proceedToNextQuestion = (currentAttemptCount) => {
+                setSelectedAnswer(null);
+                setIsAnimating(false);
+                
+                // Lògica de Checkpoints: Cada 10 de velocitat, o cada 5 de consell
+                if (currentAttemptCount % 10 === 0 && currentAttemptCount > 0) {
+                    setShowSpeedStat(true);
+                } else if (currentAttemptCount % 5 === 0 && currentAttemptCount > 0 && tipQueue.length > 0) {
+                    const nextTip = tipQueue[0];
+                    setTipQueue(tipQueue.slice(1));
+                    setCurrentTip(nextTip);
+                    setShowTip(true);
+                } else {
+                    setCurrentQuiz(generateQuiz());
+                    setQStartTime(Date.now());
+                }
+            };
+
+            const handleAnswer = (answer) => {
+                if (isAnimating || showExplanation || showTip || showSpeedStat) return;
+                setIsAnimating(true);
+                setSelectedAnswer(answer);
+
+                // Registrar temps de resposta
+                const timeTaken = (Date.now() - qStartTime) / 1000;
+                setQuestionTimes(prev => [...prev, timeTaken]);
+
+                const isCorrect = answer === currentQuiz.correctAnswer;
+                const newAttempts = attempts + 1;
+                setAttempts(newAttempts);
+
+                if (isCorrect) {
+                    setGlowEfx(true);
+                    setScore(s => s + (10 * combo));
+                    setCombo(c => Math.min(c + 1, 5));
+                    
+                    setTimeout(() => {
+                        setGlowEfx(false);
+                        proceedToNextQuestion(newAttempts);
+                    }, 800);
+                } else {
+                    setShakeEfx(true);
+                    setCombo(1); 
+                    
+                    setTimeout(() => {
+                        setShakeEfx(false);
+                        setShowExplanation(true);
+                    }, 800);
+                }
+            };
+
+            const handleContinueAfterFailure = () => {
+                const newLives = lives - 1;
+                setLives(newLives);
+                setShowExplanation(false);
+
+                if (newLives <= 0) {
+                    if (score > bestScore) setBestScore(score);
+                    setGameState('gameover');
+                } else {
+                    proceedToNextQuestion(attempts);
+                }
+            };
+
+            const handleCloseModals = () => {
+                setShowTip(false);
+                setShowSpeedStat(false);
+                setCurrentQuiz(generateQuiz());
+                setQStartTime(Date.now()); // Reseteja el timer després de tancar la finestra
+            };
+
+            // Càlcul de velocitat
+            const avgTime = questionTimes.length ? (questionTimes.reduce((a,b)=>a+b, 0) / questionTimes.length).toFixed(1) : 0;
+            const getSpeedMessage = (avg) => {
+                if(avg < 3.0) return "Nivell Flash! Impressionant! ⚡";
+                if(avg < 6.0) return "Molt bon ritme mental! 🧠";
+                if(avg < 10.0) return "Bona precisió, segueix així! 👍";
+                return "T'ho estàs pensant bé. La precisió és clau! 🐢";
+            };
+
+            if (gameState === 'menu') {
+                return (
+                <div className="min-h-screen bg-[#0B0F19] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+                    <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-cyan-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse"></div>
+                    <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[150px] mix-blend-screen"></div>
+
+                    <div className="z-10 text-center max-w-md w-full backdrop-blur-xl bg-white/5 border border-white/10 p-10 rounded-3xl shadow-[0_0_50px_rgba(6,182,212,0.15)]">
+                    <div className="flex justify-center mb-6">
+                        <div className="relative">
+                        <Sparkles className="absolute -top-4 -right-4 text-cyan-400 animate-bounce" size={32} />
+                        <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.4)]">
+                            <Flame size={48} className="text-white" />
+                        </div>
+                        </div>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-cyan-300 to-teal-300 tracking-tight">
+                        Alquimista<br/>Quàntic
+                    </h1>
+                    <p className="text-blue-200/70 mb-4 text-lg">Domina la química inorgànica.</p>
+                    <div className="mb-10 text-sm bg-white/10 rounded-full py-1 px-4 text-cyan-200 inline-block border border-cyan-500/20">
+                        +200 compostos i 15 famílies
+                    </div>
+                    <button onClick={startGame} className="w-full relative group overflow-hidden rounded-2xl p-[2px]">
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 opacity-70 group-hover:opacity-100 animate-pulse transition-opacity"></div>
+                        <div className="relative bg-[#0B0F19] bg-opacity-90 px-8 py-5 rounded-2xl flex items-center justify-center gap-3 transition-all group-hover:bg-opacity-0">
+                        <Play className="text-white fill-current" size={24} />
+                        <span className="text-2xl font-bold tracking-wide">JUGAR ARA</span>
+                        </div>
+                    </button>
+                    {bestScore > 0 && (
+                        <div className="mt-8 flex items-center justify-center gap-2 text-cyan-300 font-semibold bg-white/5 py-3 rounded-full border border-cyan-500/20">
+                        <Trophy size={20} /> Millor Puntuació: {bestScore}
+                        </div>
+                    )}
+                    </div>
+                </div>
+                );
             }
-        };
 
-        const handleAnswer = (answer) => {
-            if (isAnimating || showExplanation || showTip) return;
-            setIsAnimating(true);
-            setSelectedAnswer(answer);
+            if (gameState === 'gameover') {
+                return (
+                <div className="min-h-screen bg-[#0B0F19] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+                    <div className="absolute inset-0 bg-rose-900/20 z-0"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[600px] max-h-[600px] bg-rose-600/20 rounded-full blur-[100px]"></div>
 
-            const isCorrect = answer === currentQuiz.correctAnswer;
-            const newAttempts = attempts + 1;
-            setAttempts(newAttempts);
+                    <div className="z-10 text-center max-w-md w-full backdrop-blur-2xl bg-[#0f1423]/80 border border-rose-500/30 p-10 rounded-3xl shadow-[0_0_50px_rgba(225,29,72,0.2)]">
+                    <AlertTriangle className="mx-auto text-rose-500 mb-6" size={64} />
+                    
+                    <h2 className="text-4xl font-black text-white mb-2 tracking-tight">LABORATORI<br/>DESTRUÏT</h2>
+                    <p className="text-rose-200/70 mb-6 text-lg">Has quedat sense vides!</p>
 
-            if (isCorrect) {
-            setGlowEfx(true);
-            const pointsEarned = 10 * combo;
-            setScore(s => s + pointsEarned);
-            setCombo(c => Math.min(c + 1, 5));
-            
-            setTimeout(() => {
-                setGlowEfx(false);
-                proceedToNextQuestion(newAttempts);
-            }, 800);
+                    <div className="bg-white/5 rounded-2xl p-6 mb-6 border border-white/10">
+                        <p className="text-sm text-slate-400 uppercase tracking-widest font-bold mb-1">Puntuació Final</p>
+                        <p className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-400">{score}</p>
+                    </div>
 
-            } else {
-            setShakeEfx(true);
-            setCombo(1); 
-            
-            setTimeout(() => {
-                setShakeEfx(false);
-                setShowExplanation(true);
-            }, 800);
+                    <div className="grid grid-cols-2 gap-4 mb-8 text-left">
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                            <p className="text-xs text-slate-400 uppercase font-bold mb-1">Temps Total</p>
+                            <p className="text-xl font-bold text-cyan-300 flex items-center gap-2"><ClockIcon size={18}/> {formatTime(hudTime)}</p>
+                        </div>
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                            <p className="text-xs text-slate-400 uppercase font-bold mb-1">Temps/Molècula</p>
+                            <p className="text-xl font-bold text-fuchsia-300 flex items-center gap-2"><Activity size={18}/> {avgTime}s</p>
+                        </div>
+                    </div>
+
+                    <button onClick={startGame} className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-xl py-5 rounded-2xl flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(14,165,233,0.4)] transition-transform active:scale-95">
+                        <RotateCcw size={24} /> Tornar a Intentar
+                    </button>
+                    </div>
+                </div>
+                );
             }
-        };
 
-        const handleContinueAfterFailure = () => {
-            const newLives = lives - 1;
-            setLives(newLives);
-            setShowExplanation(false);
-
-            if (newLives <= 0) {
-                if (score > bestScore) setBestScore(score);
-                setGameState('gameover');
-            } else {
-                proceedToNextQuestion(attempts);
-            }
-        };
-
-        const handleCloseTip = () => {
-            setShowTip(false);
-            setCurrentQuiz(generateQuiz());
-        };
-
-        if (gameState === 'menu') {
             return (
-            <div className="min-h-screen bg-[#0B0F19] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
-                <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-cyan-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse"></div>
-                <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[150px] mix-blend-screen"></div>
-
-                <div className="z-10 text-center max-w-md w-full backdrop-blur-xl bg-white/5 border border-white/10 p-10 rounded-3xl shadow-[0_0_50px_rgba(6,182,212,0.15)]">
-                <div className="flex justify-center mb-6">
-                    <div className="relative">
-                    <Sparkles className="absolute -top-4 -right-4 text-cyan-400 animate-bounce" size={32} />
-                    <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.4)]">
-                        <Flame size={48} className="text-white" />
-                    </div>
-                    </div>
-                </div>
+                <div className={`min-h-screen bg-[#0B0F19] text-white flex flex-col font-sans overflow-hidden transition-colors duration-300 ${shakeEfx ? 'animate-shake' : ''} ${glowEfx ? 'bg-emerald-950/40' : ''}`}>
                 
-                <h1 className="text-4xl md:text-5xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-cyan-300 to-teal-300 tracking-tight">
-                    Alquimista<br/>Quàntic
-                </h1>
-                <p className="text-blue-200/70 mb-4 text-lg">Domina la química inorgànica.</p>
-                <div className="mb-10 text-sm bg-white/10 rounded-full py-1 px-4 text-cyan-200 inline-block border border-cyan-500/20">
-                    +200 compostos i 13 famílies
-                </div>
-                
-                <button 
-                    onClick={startGame}
-                    className="w-full relative group overflow-hidden rounded-2xl p-[2px]"
-                >
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 opacity-70 group-hover:opacity-100 animate-pulse transition-opacity"></div>
-                    <div className="relative bg-[#0B0F19] bg-opacity-90 px-8 py-5 rounded-2xl flex items-center justify-center gap-3 transition-all group-hover:bg-opacity-0">
-                    <Play className="text-white fill-current" size={24} />
-                    <span className="text-2xl font-bold tracking-wide">JUGAR ARA</span>
+                {/* OVERLAY D'EXPLICACIÓ D'ERROR */}
+                {showExplanation && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300">
+                    <div className="bg-[#13192B] border border-rose-500/50 p-6 md:p-8 rounded-3xl max-w-lg w-full shadow-[0_0_60px_rgba(225,29,72,0.3)] transform transition-all">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="bg-rose-500/20 p-3 rounded-full">
+                                <XCircle className="text-rose-500" size={32} />
+                            </div>
+                            <h2 className="text-3xl font-black text-white">Error de Càlcul!</h2>
+                        </div>
+                        <div className="bg-white/5 rounded-2xl p-5 mb-6 border border-white/10">
+                            <p className="text-sm text-slate-400 uppercase tracking-widest font-bold mb-2">La resposta correcta era:</p>
+                            <div className="text-2xl md:text-3xl font-black text-emerald-400 capitalize">
+                                {currentQuiz.type === 'name_to_formula' ? <FormatFormula formula={currentQuiz.correctAnswer} /> : currentQuiz.correctAnswer}
+                            </div>
+                        </div>
+                        <div className="bg-blue-900/30 rounded-2xl p-5 mb-8 border border-blue-500/30">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Info size={20} className="text-cyan-400" />
+                                <h3 className="font-bold text-cyan-300 text-lg uppercase tracking-wide">Repàs: {currentQuiz.compound.type}</h3>
+                            </div>
+                            <p className="text-blue-100/80 leading-relaxed text-lg">{explanationsDB[currentQuiz.compound.type]}</p>
+                            <p className="mt-3 text-sm text-cyan-300/60 font-medium flex items-center gap-2">S'aplica al compost: <FormatFormula formula={currentQuiz.compound.formula} /></p>
+                        </div>
+                        <button onClick={handleContinueAfterFailure} className="w-full bg-gradient-to-r from-rose-600 to-orange-500 hover:from-rose-500 hover:to-orange-400 text-white font-bold text-xl py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95">
+                            Entès, continuar <ArrowRight size={24} />
+                        </button>
                     </div>
-                </button>
-
-                {bestScore > 0 && (
-                    <div className="mt-8 flex items-center justify-center gap-2 text-cyan-300 font-semibold bg-white/5 py-3 rounded-full border border-cyan-500/20">
-                    <Trophy size={20} /> Millor Puntuació: {bestScore}
                     </div>
                 )}
+
+                {/* OVERLAY DE CONSELL (Cada 5 intents) */}
+                {showTip && currentTip && !showSpeedStat && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300">
+                    <div className="bg-[#0B1221] border border-cyan-500/50 p-6 md:p-8 rounded-3xl max-w-lg w-full shadow-[0_0_60px_rgba(6,182,212,0.3)] transform transition-all relative overflow-hidden">
+                        <div className="absolute top-[-50px] right-[-50px] w-[150px] h-[150px] bg-cyan-600/20 rounded-full blur-[50px]"></div>
+                        <div className="flex items-center gap-3 mb-6 relative z-10">
+                            <div className="bg-cyan-500/20 p-3 rounded-full border border-cyan-500/30">
+                                <Lightbulb className="text-cyan-400" size={32} />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-black text-white">Checkpoint Teòric</h2>
+                                <p className="text-cyan-300/70 text-sm font-bold uppercase tracking-widest">{attempts} compostos resolts</p>
+                            </div>
+                        </div>
+                        <div className="bg-gradient-to-br from-blue-900/40 to-cyan-900/20 rounded-2xl p-6 mb-8 border border-cyan-500/30 relative z-10">
+                            <h3 className="font-bold text-cyan-300 text-lg uppercase tracking-wide mb-3 border-b border-cyan-500/30 pb-2">💡 Consell: {currentTip.title}</h3>
+                            <p className="text-blue-100 leading-relaxed text-xl font-medium">{currentTip.content}</p>
+                        </div>
+                        <button onClick={handleCloseModals} className="relative z-10 w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xl py-4 rounded-xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(6,182,212,0.3)] transition-transform active:scale-95">
+                            Continuar Investigant <ArrowRight size={24} />
+                        </button>
+                    </div>
+                    </div>
+                )}
+
+                {/* OVERLAY DE RENDIMENT/TEMPS (Cada 10 intents) */}
+                {showSpeedStat && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300">
+                    <div className="bg-[#0B1221] border border-fuchsia-500/50 p-6 md:p-8 rounded-3xl max-w-lg w-full shadow-[0_0_60px_rgba(217,70,239,0.3)] transform transition-all relative overflow-hidden">
+                        <div className="absolute top-[-50px] left-[-50px] w-[200px] h-[200px] bg-fuchsia-600/20 rounded-full blur-[60px]"></div>
+                        <div className="flex items-center gap-3 mb-6 relative z-10">
+                            <div className="bg-fuchsia-500/20 p-3 rounded-full border border-fuchsia-500/30">
+                                <Activity className="text-fuchsia-400" size={32} />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-black text-white">Balanç de Rendiment</h2>
+                                <p className="text-fuchsia-300/70 text-sm font-bold uppercase tracking-widest">{attempts} compostos superats!</p>
+                            </div>
+                        </div>
+                        <div className="text-center bg-white/5 rounded-2xl p-8 mb-8 border border-white/10 relative z-10">
+                            <p className="text-slate-400 font-bold uppercase tracking-widest mb-2">Temps mitjà per molècula</p>
+                            <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-purple-400 mb-4">
+                                {avgTime}s
+                            </div>
+                            <p className="text-xl font-bold text-white">{getSpeedMessage(parseFloat(avgTime))}</p>
+                        </div>
+                        <button onClick={handleCloseModals} className="relative z-10 w-full bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-bold text-xl py-4 rounded-xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(217,70,239,0.3)] transition-transform active:scale-95">
+                            A per la següent fase! <ArrowRight size={24} />
+                        </button>
+                    </div>
+                    </div>
+                )}
+
+                {/* HUD Superior */}
+                <div className="flex justify-between items-center p-6 md:p-8 z-10 bg-gradient-to-b from-[#0B0F19] to-transparent">
+                    <div className="flex gap-2 w-1/3">
+                    {[...Array(3)].map((_, i) => (
+                        <div key={i} className={`transition-all duration-300 ${i < lives ? 'text-rose-500 drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]' : 'text-slate-800'}`}>
+                            <Heart size={32} className={i < lives ? "fill-current" : "fill-current"} />
+                        </div>
+                    ))}
+                    </div>
+
+                    <div className="flex w-1/3 justify-center">
+                        <div className="flex items-center gap-2 text-cyan-300 bg-cyan-900/30 px-4 py-2 rounded-full border border-cyan-500/30">
+                            <ClockIcon size={20} />
+                            <span className="font-mono text-xl font-bold tracking-wider">{formatTime(hudTime)}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col items-end w-1/3">
+                        <div className="text-3xl md:text-4xl font-black tracking-tighter text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+                            {score.toString().padStart(4, '0')}
+                        </div>
+                        {combo > 1 && (
+                            <div className="flex items-center gap-1 text-cyan-400 font-bold text-lg animate-pulse">
+                            <Zap size={16} className="fill-current" /> COMBO x{combo}
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
+
+                {/* Àrea del Quiz */}
+                <div className={`flex-1 flex flex-col items-center justify-center p-6 z-10 transition-opacity duration-300 ${(showExplanation || showTip || showSpeedStat) ? 'opacity-30 blur-sm pointer-events-none' : 'opacity-100'}`}>
+                    <div className="text-cyan-300/60 font-bold tracking-widest uppercase mb-4 text-sm md:text-base flex items-center gap-2">
+                    {currentQuiz.compound.type}
+                    </div>
+                    <div className="h-40 md:h-56 flex items-center justify-center animate-[float_4s_ease-in-out_infinite] animate-float">
+                    {currentQuiz.type === 'formula_to_name' ? (
+                        <FormatFormula formula={currentQuiz.questionText} large={true} />
+                    ) : (
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-center text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-400 drop-shadow-sm px-4">
+                        <span className="capitalize">{currentQuiz.questionText}</span>
+                        </h2>
+                    )}
+                    </div>
+                </div>
+
+                <div className={`p-4 md:p-8 z-10 w-full max-w-4xl mx-auto pb-12 transition-opacity duration-300 ${(showExplanation || showTip || showSpeedStat) ? 'opacity-30 blur-sm pointer-events-none' : 'opacity-100'}`}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {currentQuiz.options.map((option, index) => {
+                        let btnStyle = "bg-white/5 border-white/10 hover:bg-white/10 text-slate-200";
+                        let formatAsFormula = currentQuiz.type === 'name_to_formula';
+
+                        if (selectedAnswer !== null) {
+                            if (option === currentQuiz.correctAnswer) {
+                                btnStyle = "bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_30px_rgba(52,211,153,0.3)] ring-2 ring-emerald-400 scale-[1.02]";
+                            } else if (option === selectedAnswer && option !== currentQuiz.correctAnswer) {
+                                btnStyle = "bg-rose-500/20 border-rose-500 text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.3)] opacity-50";
+                            } else {
+                                btnStyle = "bg-white/5 border-white/5 text-slate-500 opacity-40";
+                            }
+                        }
+
+                        return (
+                        <button
+                            key={index}
+                            onClick={() => handleAnswer(option)}
+                            disabled={isAnimating || showExplanation || showTip || showSpeedStat}
+                            className={`relative w-full p-6 md:p-8 rounded-2xl border-2 backdrop-blur-md transition-all duration-300 text-xl md:text-2xl font-bold flex items-center justify-center text-center overflow-hidden active:scale-95 ${btnStyle}`}
+                        >
+                            {selectedAnswer === null && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-white/5 to-cyan-500/0 opacity-0 hover:opacity-100 transition-opacity duration-500 transform -translate-x-full hover:translate-x-full"></div>
+                            )}
+                            {formatAsFormula ? <FormatFormula formula={option} /> : <span className="capitalize">{option}</span>}
+                        </button>
+                        );
+                    })}
+                    </div>
+                </div>
+                </div>
             );
         }
 
-        if (gameState === 'gameover') {
-            return (
-            <div className="min-h-screen bg-[#0B0F19] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
-                <div className="absolute inset-0 bg-rose-900/20 z-0"></div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[600px] max-h-[600px] bg-rose-600/20 rounded-full blur-[100px]"></div>
-
-                <div className="z-10 text-center max-w-md w-full backdrop-blur-2xl bg-[#0f1423]/80 border border-rose-500/30 p-10 rounded-3xl shadow-[0_0_50px_rgba(225,29,72,0.2)]">
-                <AlertTriangle className="mx-auto text-rose-500 mb-6" size={64} />
-                
-                <h2 className="text-4xl font-black text-white mb-2 tracking-tight">LABORATORI<br/>DESTRUÏT</h2>
-                <p className="text-rose-200/70 mb-8 text-lg">Has quedat sense vides!</p>
-
-                <div className="bg-white/5 rounded-2xl p-6 mb-8 border border-white/10">
-                    <p className="text-sm text-slate-400 uppercase tracking-widest font-bold mb-1">Puntuació Final</p>
-                    <p className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-400">{score}</p>
-                </div>
-
-                <button 
-                    onClick={startGame}
-                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-xl py-5 rounded-2xl flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(14,165,233,0.4)] transition-transform active:scale-95"
-                >
-                    <RotateCcw size={24} /> Tornar a Intentar
-                </button>
-                </div>
-            </div>
-            );
-        }
-
-        return (
-            <div className={`min-h-screen bg-[#0B0F19] text-white flex flex-col font-sans overflow-hidden transition-colors duration-300 ${shakeEfx ? 'animate-shake' : ''} ${glowEfx ? 'bg-emerald-950/40' : ''}`}>
-            
-            {/* OVERLAY D'EXPLICACIÓ AL FALLAR */}
-            {showExplanation && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300">
-                <div className="bg-[#13192B] border border-rose-500/50 p-6 md:p-8 rounded-3xl max-w-lg w-full shadow-[0_0_60px_rgba(225,29,72,0.3)] transform transition-all">
-                    
-                    <div className="flex items-center gap-3 mb-6">
-                    <div className="bg-rose-500/20 p-3 rounded-full">
-                        <XCircle className="text-rose-500" size={32} />
-                    </div>
-                    <h2 className="text-3xl font-black text-white">Error de Càlcul!</h2>
-                    </div>
-
-                    <div className="bg-white/5 rounded-2xl p-5 mb-6 border border-white/10">
-                    <p className="text-sm text-slate-400 uppercase tracking-widest font-bold mb-2">La resposta correcta era:</p>
-                    <div className="text-2xl md:text-3xl font-black text-emerald-400 capitalize">
-                        {currentQuiz.type === 'name_to_formula' 
-                        ? <FormatFormula formula={currentQuiz.correctAnswer} /> 
-                        : currentQuiz.correctAnswer}
-                    </div>
-                    </div>
-
-                    <div className="bg-blue-900/30 rounded-2xl p-5 mb-8 border border-blue-500/30">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Info size={20} className="text-cyan-400" />
-                        <h3 className="font-bold text-cyan-300 text-lg uppercase tracking-wide">
-                        Repàs: {currentQuiz.compound.type}
-                        </h3>
-                    </div>
-                    <p className="text-blue-100/80 leading-relaxed text-lg">
-                        {explanationsDB[currentQuiz.compound.type]}
-                    </p>
-                    <p className="mt-3 text-sm text-cyan-300/60 font-medium flex items-center gap-2">
-                        S'aplica al compost: <FormatFormula formula={currentQuiz.compound.formula} />
-                    </p>
-                    </div>
-
-                    <button 
-                    onClick={handleContinueAfterFailure}
-                    className="w-full bg-gradient-to-r from-rose-600 to-orange-500 hover:from-rose-500 hover:to-orange-400 text-white font-bold text-xl py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95"
-                    >
-                    Entès, continuar <ArrowRight size={24} />
-                    </button>
-                </div>
-                </div>
-            )}
-
-            {/* NOU: OVERLAY DE CONSELL CADA 5 INTENTS */}
-            {showTip && currentTip && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300">
-                <div className="bg-[#0B1221] border border-cyan-500/50 p-6 md:p-8 rounded-3xl max-w-lg w-full shadow-[0_0_60px_rgba(6,182,212,0.3)] transform transition-all relative overflow-hidden">
-                    
-                    <div className="absolute top-[-50px] right-[-50px] w-[150px] h-[150px] bg-cyan-600/20 rounded-full blur-[50px]"></div>
-
-                    <div className="flex items-center gap-3 mb-6 relative z-10">
-                    <div className="bg-cyan-500/20 p-3 rounded-full border border-cyan-500/30">
-                        <Lightbulb className="text-cyan-400" size={32} />
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-black text-white">Checkpoint Científic</h2>
-                        <p className="text-cyan-300/70 text-sm font-bold uppercase tracking-widest">{attempts} compostos analitzats</p>
-                    </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-blue-900/40 to-cyan-900/20 rounded-2xl p-6 mb-8 border border-cyan-500/30 relative z-10">
-                    <h3 className="font-bold text-cyan-300 text-lg uppercase tracking-wide mb-3 border-b border-cyan-500/30 pb-2">
-                        💡 Consell: {currentTip.title}
-                    </h3>
-                    <p className="text-blue-100 leading-relaxed text-xl font-medium">
-                        {currentTip.content}
-                    </p>
-                    </div>
-
-                    <button 
-                    onClick={handleCloseTip}
-                    className="relative z-10 w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xl py-4 rounded-xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(6,182,212,0.3)] transition-transform active:scale-95"
-                    >
-                    Continuar Investigant <ArrowRight size={24} />
-                    </button>
-                </div>
-                </div>
-            )}
-
-            <div className="flex justify-between items-center p-6 md:p-8 z-10 bg-gradient-to-b from-[#0B0F19] to-transparent">
-                <div className="flex gap-2">
-                {[...Array(3)].map((_, i) => (
-                    <div key={i} className={`transition-all duration-300 ${i < lives ? 'text-rose-500 drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]' : 'text-slate-800'}`}>
-                        <Heart size={32} className={i < lives ? "fill-current" : "fill-current"} />
-                    </div>
-                ))}
-                </div>
-
-                <div className="flex flex-col items-end">
-                <div className="text-3xl md:text-4xl font-black tracking-tighter text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
-                    {score.toString().padStart(4, '0')}
-                </div>
-                {combo > 1 && (
-                    <div className="flex items-center gap-1 text-cyan-400 font-bold text-lg animate-pulse">
-                    <Zap size={16} className="fill-current" /> COMBO x{combo}
-                    </div>
-                )}
-                </div>
-            </div>
-
-            <div className={`flex-1 flex flex-col items-center justify-center p-6 z-10 transition-opacity duration-300 ${(showExplanation || showTip) ? 'opacity-30 blur-sm pointer-events-none' : 'opacity-100'}`}>
-                <div className="text-cyan-300/60 font-bold tracking-widest uppercase mb-4 text-sm md:text-base flex items-center gap-2">
-                {currentQuiz.compound.type}
-                </div>
-                
-                <div className="h-40 md:h-56 flex items-center justify-center animate-[float_4s_ease-in-out_infinite] animate-float">
-                {currentQuiz.type === 'formula_to_name' ? (
-                    <FormatFormula formula={currentQuiz.questionText} large={true} />
-                ) : (
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-center text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-400 drop-shadow-sm px-4">
-                    <span className="capitalize">{currentQuiz.questionText}</span>
-                    </h2>
-                )}
-                </div>
-            </div>
-
-            <div className={`p-4 md:p-8 z-10 w-full max-w-4xl mx-auto pb-12 transition-opacity duration-300 ${(showExplanation || showTip) ? 'opacity-30 blur-sm pointer-events-none' : 'opacity-100'}`}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {currentQuiz.options.map((option, index) => {
-                    
-                    let btnStyle = "bg-white/5 border-white/10 hover:bg-white/10 text-slate-200";
-                    let formatAsFormula = currentQuiz.type === 'name_to_formula';
-
-                    if (selectedAnswer !== null) {
-                    if (option === currentQuiz.correctAnswer) {
-                        btnStyle = "bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_30px_rgba(52,211,153,0.3)] ring-2 ring-emerald-400 scale-[1.02]";
-                    } else if (option === selectedAnswer && option !== currentQuiz.correctAnswer) {
-                        btnStyle = "bg-rose-500/20 border-rose-500 text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.3)] opacity-50";
-                    } else {
-                        btnStyle = "bg-white/5 border-white/5 text-slate-500 opacity-40";
-                    }
-                    }
-
-                    return (
-                    <button
-                        key={index}
-                        onClick={() => handleAnswer(option)}
-                        disabled={isAnimating || showExplanation || showTip}
-                        className={`relative w-full p-6 md:p-8 rounded-2xl border-2 backdrop-blur-md transition-all duration-300 text-xl md:text-2xl font-bold flex items-center justify-center text-center overflow-hidden active:scale-95 ${btnStyle}`}
-                    >
-                        {selectedAnswer === null && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-white/5 to-cyan-500/0 opacity-0 hover:opacity-100 transition-opacity duration-500 transform -translate-x-full hover:translate-x-full"></div>
-                        )}
-                        
-                        {formatAsFormula ? (
-                        <FormatFormula formula={option} />
-                        ) : (
-                        <span className="capitalize">{option}</span>
-                        )}
-                    </button>
-                    );
-                })}
-                </div>
-            </div>
-            </div>
-        );
-        }
-
-        // Renderitzar l'aplicació dins el div #root
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<GameApp />);
     </script>
